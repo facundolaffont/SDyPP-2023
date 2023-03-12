@@ -7,9 +7,9 @@ public class Servidor {
 
     public static void main(String[] args) {
         try {
-            // Crea un socket de servidor que escucha en el puerto 5000.
-            ServerSocket serverSocket = new ServerSocket(5000);
-            System.out.println("Escuchando en puerto 5000...");
+            // Crea un socket de servidor.
+            ServerSocket serverSocket = new ServerSocket(PUERTO);
+            System.out.println("Escuchando en puerto " + PUERTO + "...");
 
             // Espera a que un cliente se conecte.
             Socket clientSocket = serverSocket.accept();
@@ -31,8 +31,12 @@ public class Servidor {
             out.close();
             clientSocket.close();
             serverSocket.close();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
+            System.out.println( "Ocurrió un error: " + e.getMessage() );
             e.printStackTrace();
         }
     }
+
+    private static final int PUERTO = 5000;
 }
