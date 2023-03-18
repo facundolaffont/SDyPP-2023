@@ -21,23 +21,23 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 + Servidor Java, usando sockets TCP, que recibe un mensaje de texto y lo repite a su cliente.
 + Correspondiente cliente Java que también verifica el comportamiento del servidor.
 
-![Ejemplo del servicio](/tp01/ej5/res/ejemplo.png "Ejemplo del servicio.")
-
 </div>
 
 ### Ejercicio 2
 
 <div align="justify">
 
-+ Modificación del server del ej1, para que pueda atender varios clientes a la vez.
++ Modificación del server del ejercicio 1, para que pueda atender varios clientes a la vez.
 + Versión UDP del servidor.
 
 </div>
 
-### Ejercicio 3
+### Ejercicio 5
 
 <div align="justify">
 
 + Servidor HTTP que devuelve información de clima del lugar donde reside el servidor, junto con la información de la localidad. Para obtener información del clima, realizar una petición `GET` al servidor, con endpoint `/clima` (si no se añade el endpoint, el servidor da la bienvenida y aclara cómo utilizar el servicio).
+
+![Ejemplo del servicio](/tp01/ej5/res/ejemplo.png "Ejemplo del servicio.")
 
 </div>
