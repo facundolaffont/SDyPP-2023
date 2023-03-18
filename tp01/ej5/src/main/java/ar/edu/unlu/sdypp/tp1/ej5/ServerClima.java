@@ -83,8 +83,8 @@ public class ServerClima {
 		if (respuesta == null) return "Error: no se pudo recuperar el clima.";
 
 		// Inserta, al principio del JSON, la IP, la ciudad y el país en donde está alojado el servidor.
-		respuesta = _insertarStringEnJSON(respuesta, "país", pais);
-		respuesta = _insertarStringEnJSON(respuesta, "ciudad", ciudad);
+		respuesta = _insertarStringEnJSON(respuesta, "country", pais);
+		respuesta = _insertarStringEnJSON(respuesta, "city", ciudad);
 		respuesta = _insertarStringEnJSON(respuesta, "ip", ip);
 
 		return respuesta;

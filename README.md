@@ -21,6 +21,8 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 + Servidor Java, usando sockets TCP, que recibe un mensaje de texto y lo repite a su cliente.
 + Correspondiente cliente Java que también verifica el comportamiento del servidor.
 
+![Ejemplo del servicio](/tp01/ej5/res/ejemplo.png "Ejemplo del servicio.")
+
 </div>
 
 ### Ejercicio 2
