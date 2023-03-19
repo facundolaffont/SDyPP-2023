@@ -27,15 +27,33 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 
 <div align="justify">
 
-+ Modificación del server del ej1, para que pueda atender varios clientes a la vez.
++ Modificación del server del ejercicio 1, para que pueda atender varios clientes a la vez.
 + Versión UDP del servidor.
 
 </div>
 
-### Ejercicio 3
+### Ejercicio 5
+
+#### Consigna
 
 <div align="justify">
 
-+ Servidor HTTP que devuelve información de clima del lugar donde reside el servidor, junto con la información de la localidad. Para obtener información del clima, realizar una petición `GET` al servidor, con endpoint `/clima` (si no se añade el endpoint, el servidor da la bienvenida y aclara cómo utilizar el servicio).
+Realizar un servidor HTTP que devuelva información de clima del lugar donde reside el servidor.
+
+#### Para ejecutar el servidor
+
+1. Descargar el archivo .jar y la carpeta `src` a un mismo directorio.
+2. Eliminar la carpeta `java`, que se encuentra dentro de la carpeta descargada, específicamente en `src/main/java`.
+3. En la misma carpeta a la cual se copió el .jar, ejecutar:
+
+```sh
+java -jar ej5-1.jar
+```
+
+#### Utilización del servicio
+
+Para obtener información del clima como JSON, realizar una petición HTTP GET al servidor, con endpoint `/clima`.
+
+![Ejemplo del servicio](/tp01/ej5/img/ejemplo.png "Ejemplo del servicio.")
 
 </div>
