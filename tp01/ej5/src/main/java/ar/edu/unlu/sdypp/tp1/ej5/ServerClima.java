@@ -27,16 +27,9 @@ public class ServerClima {
 		SpringApplication.run(ServerClima.class, args);
 	}
 
-	/**
-	 * Muestra un mensaje de bienvenida y la instrucción para el uso de la API.
-	 * 
-	 * Se ejecuta en respuesta a un GET HTTP a la raíz.
-	 * 
-	 * @return El mensaje de bienvenida y la instrucción.
-	 */
-	@GetMapping("/")
-	public String index() {
-		return "Bienvenido! Para obtener información sobre el clima, realizá una petición GET al recurso /clima.";
+	public ServerClima() {
+		// Construye el manejador del archivo de la base de datos de las ubicaciones.
+		bdGeoLite = new File("src/main/resources/geolite2-city-bd/GeoLite2-City.mmdb");
 	}
 
 	/**
@@ -54,9 +47,6 @@ public class ServerClima {
 		ip = (
 			(IpPublica) _getObjetoJSON(ip, IpPublica.class)
 		).getIp();
-		
-		// Lee el archivo de las geolocalizaciones.
-		File bdGeoLite = new File("res/GeoLite2-City.mmdb");
 
 		// Intenta obtener el pais del servidor, y si no puede, notifica.
 		String pais = _getPais(ip, bdGeoLite);
@@ -93,9 +83,11 @@ public class ServerClima {
 
 	/* Miembros privados */
 
+	File bdGeoLite; // Manejador del archivo de ubicaciones.
+
 	/**
-	 * Devuelve un JSON como resultado de una petición que se
-	 * realiza al endpoint {@code url}.
+	 * Devuelve un JSON como resultado de una petición
+	 * que se realiza al endpoint {@code url}.
 	 * 
 	 * @param url - Endpoint de la API.
 	 * @return Un JSON, o {@code null}.
@@ -124,10 +116,13 @@ public class ServerClima {
 		return null;
 	}
 
+	/**
+	 * Clase que se utiliza para mapear el JSON de la API de ipify.
+	 */
 	private static class IpPublica {
-		public IpPublica() {}
+		//public IpPublica() {}
 		
-		public void setIp(String ip) { this.ip = ip; }
+		//public void setIp(String ip) { this.ip = ip; }
 		public String getIp() { return ip; }
 
 		private String ip;

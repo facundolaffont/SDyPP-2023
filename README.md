@@ -38,6 +38,6 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 
 + Servidor HTTP que devuelve información de clima del lugar donde reside el servidor, junto con la información de la localidad. Para obtener información del clima, realizar una petición `GET` al servidor, con endpoint `/clima` (si no se añade el endpoint, el servidor da la bienvenida y aclara cómo utilizar el servicio).
 
-![Ejemplo del servicio](/tp01/ej5/res/ejemplo.png "Ejemplo del servicio.")
+![Ejemplo del servicio](/tp01/ej5/res/img/ejemplo.png "Ejemplo del servicio.")
 
 </div>
