@@ -44,17 +44,31 @@ Realizar un servidor HTTP que devuelva información de clima del lugar donde res
 
 #### Cómo poner en funcionamiento el servidor
 
-1. Descargar el archivo .jar y la carpeta `src` a un mismo directorio.
-2. Eliminar la carpeta `java`, que se encuentra dentro de la carpeta descargada, específicamente en `src/main/java`.
-3. En la misma carpeta a la cual se copió el .jar, ejecutar:
+En Linux, ejecutar desde una consola los siguientes comandos:
+
+</div>
 
 ```sh
+curl -L https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej5/target/ej5-1.jar -o "ej5-1.jar"
+
+curl -L "https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej5/src/main/resources/geolite2-city-bd/GeoLite2-City.mmdb" -o "GeoLite2-City.mmdb" --output-dir src/main/resources/geolite2-city-bd --create-dirs
+
 java -jar ej5-1.jar
 ```
 
+El servidor se estará ejecutando en localhost, en el puerto 8080.
+
+<div align="justify">
+
 #### Utilización del servicio
 
-Para obtener información del clima como JSON, realizar una petición HTTP GET al servidor, con endpoint `/clima`.
+Para obtener información del clima como JSON, realizar una petición HTTP GET al servidor, con endpoint `/clima`. Esto se puede hacer, por ejemplo, con curl, de la siguiente forma:
+
+```sh
+curl localhost:8080/clima | jq
+```
+
+A continuación, un ejemplo del resultado:
 
 ![Ejemplo del servicio](/tp01/ej5/img/ejemplo.png "Ejemplo del servicio.")
 
