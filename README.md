@@ -49,7 +49,7 @@ En Linux, ejecutar desde una consola los siguientes comandos:
 </div>
 
 ```sh
-curl -L https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej5/target/ej5-1.jar -o "ej5-1.jar"
+curl -L "https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej5/target/ej5-1.jar" -o "ej5-1.jar"
 
 curl -L "https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej5/src/main/resources/geolite2-city-bd/GeoLite2-City.mmdb" -o "GeoLite2-City.mmdb" --output-dir src/main/resources/geolite2-city-bd --create-dirs
 
