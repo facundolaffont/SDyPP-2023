@@ -18,8 +18,9 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 
 <div align="justify">
 
-+ Servidor Java, usando sockets TCP, que recibe un mensaje de texto y lo repite a su cliente.
-+ Correspondiente cliente Java que también verifica el comportamiento del servidor.
+#### Consigna
+
+Crear un servidor, usando sockets TCP, que reciba un mensaje de texto y lo repita a su cliente. Desarrollar el correspondiente cliente que, además de enviar el mensaje, verifique el comportamiento del servidor.
 
 </div>
 
@@ -27,8 +28,9 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 
 <div align="justify">
 
-+ Modificación del server del ejercicio 1, para que pueda atender varios clientes a la vez.
-+ Versión UDP del servidor.
+#### Consigna
+
+Modificar el servidor del ejercicio 1, para que pueda atender varios clientes a la vez. Crear, también, la versión UDP del servidor.
 
 </div>
 
@@ -40,7 +42,7 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 
 Realizar un servidor HTTP que devuelva información de clima del lugar donde reside el servidor.
 
-#### Para ejecutar el servidor
+#### Cómo poner en funcionamiento el servidor
 
 1. Descargar el archivo .jar y la carpeta `src` a un mismo directorio.
 2. Eliminar la carpeta `java`, que se encuentra dentro de la carpeta descargada, específicamente en `src/main/java`.
