@@ -44,8 +44,8 @@ Realizar un servidor HTTP que devuelva información de clima del lugar donde res
 
 #### Compilación y empaquetado del jar con Maven (Linux)
 
-1. En una terminal, ubicarse en la carpeta del proyecto tp01/ej5.
-2. Ejecutar mvn package.
+1. En una terminal, ubicarse en la carpeta del proyecto `tp01/ej5`.
+2. Ejecutar `mvn package`.
 
 #### Cómo poner en funcionamiento el servidor (Linux)
 
