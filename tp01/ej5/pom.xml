@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.0.4</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<version>3.0.5</version>
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>ar.edu.unlu.sdypp.tp1</groupId>
 	<artifactId>ej5</artifactId>
 	<version>1</version>
 	<packaging>jar</packaging>
 	<name>ej5</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Ejercicio 5 del TP 1</description>
 	<properties>
 		<java.version>19</java.version>
 	</properties>
@@ -27,6 +28,11 @@
 			<artifactId>geoip2</artifactId>
 			<version>4.0.1</version>
 		</dependency>
+		<dependency>
+			<groupId>javax.activation</groupId>
+			<artifactId>activation</artifactId>
+			<version>1.1.1</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -39,7 +45,8 @@
 			<resource>
 				<directory>src/main/resources</directory>
 				<excludes>
-					<exclude>**</exclude>
+					<!-- Excluye a la carpeta de la BD de geolocalizaciones del empaquetado del jar -->
+					<exclude>geolite2-city-bd</exclude>
 				</excludes>
 			</resource>
 		</resources>

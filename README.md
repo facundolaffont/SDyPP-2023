@@ -1,4 +1,4 @@
-# SDyPP-2023
+# Sistemas Distribuidos y Programación Paralela
 
 <div align="justify">
 
@@ -42,21 +42,32 @@ Modificar el servidor del ejercicio 1, para que pueda atender varios clientes a 
 
 Realizar un servidor HTTP que devuelva información de clima del lugar donde reside el servidor.
 
-#### Cómo poner en funcionamiento el servidor
+#### Compilación y empaquetado del jar con Maven (Linux)
 
-En Linux, ejecutar desde una consola los siguientes comandos:
+1. En una terminal, ubicarse en la carpeta del proyecto tp01/ej5.
+2. Ejecutar mvn package.
+
+#### Cómo poner en funcionamiento el servidor (Linux)
+
+**_Requisitos previos:_** debe tener instalado Docker.
+
+1. Ejecutar desde una terminal los siguientes comandos:
 
 </div>
 
 ```sh
-curl -L "https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej5/target/ej5-1.jar" -o "ej5-1.jar"
-
-curl -L "https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej5/src/main/resources/geolite2-city-bd/GeoLite2-City.mmdb" -o "GeoLite2-City.mmdb" --output-dir src/main/resources/geolite2-city-bd --create-dirs
-
-java -jar ej5-1.jar
+docker build -t tp1:ej5 .
 ```
 
-El servidor se estará ejecutando en localhost, en el puerto 8080.
+2. Una vez que se cree la imagen, ejecutar:
+
+```sh
+docker run -p 8080:80 -it --name tp1-ej5 tp1:ej5
+```
+
+**_Nota:_** se puede reemplazar el puerto 8080 por cualquier otro puerto.
+
+**_Nota:_** el servidor se estará ejecutando en localhost, en el puerto elegido para el host (en este caso fue el 8080).
 
 <div align="justify">
 

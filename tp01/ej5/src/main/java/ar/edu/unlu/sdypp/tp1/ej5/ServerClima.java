@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.URISyntaxException;
 import java.net.URL;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,7 +30,48 @@ public class ServerClima {
 
 	public ServerClima() {
 		// Construye el manejador del archivo de la base de datos de las ubicaciones.
-		bdGeoLite = new File("src/main/resources/geolite2-city-bd/GeoLite2-City.mmdb");
+		//bdGeoLite = new File("resources/geolite2-city-bd/GeoLite2-City.mmdb");
+
+		/*
+		System.out.println();
+		try {
+			System.out.println(ServerClima.class.getClassLoader().getResource("../../../src/main/resources/geolite2-city-bd/GeoLite2-City.mmdb").toURI().toString());
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println();
+		*/
+
+		/*
+		try {
+			System.out.println();
+			System.out.println(ServerClima.class.getProtectionDomain().getCodeSource().getLocation().toURI().toString());
+			System.out.println(ServerClima.class.getProtectionDomain().getCodeSource().get
+			System.out.println();
+		} catch (URISyntaxException e) {
+			System.out.println("-----1-----");
+			e.printStackTrace();
+		}
+		*/
+
+		/*
+		try {
+			bdGeoLite = new File(
+				ServerClima
+				.class
+				.getClassLoader()
+				.getResource("../../../src/main/resources/geolite2-city-bd/GeoLite2-City.mmdb")
+				.toURI()
+			);
+		} catch (URISyntaxException e) {
+			System.out.println("Hubo un problema al acceder a la base de datos de geolocalizaciones.");
+			e.printStackTrace();
+			System.out.println("-----2-----");
+		}
+		*/
+
+		bdGeoLite = new File("/usr/bd/GeoLite2-City.mmdb");
 	}
 
 	/**
