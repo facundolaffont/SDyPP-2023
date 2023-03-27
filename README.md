@@ -56,13 +56,13 @@ Realizar un servidor HTTP que devuelva información de clima del lugar donde res
 </div>
 
 ```sh
-docker build -t tp1:ej5 .
+sudo docker build -t tp1:ej5 .
 ```
 
 2. Una vez que se cree la imagen, ejecutar:
 
 ```sh
-docker run -p 8080:80 -it --name tp1-ej5 tp1:ej5
+sudo docker run -p 8080:80 -it --name tp1-ej5 tp1:ej5
 ```
 
 **_Nota:_** se puede reemplazar el puerto 8080 por cualquier otro puerto.
