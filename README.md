@@ -42,12 +42,20 @@ Modificar el servidor del ejercicio 1, para que pueda atender varios clientes a 
 
 Realizar un servidor HTTP que devuelva información de clima del lugar donde reside el servidor.
 
-#### 5.2. Compilación y empaquetado del jar con Maven (Linux)
+#### 5.2. Software utilizado
+
++ Debian 11 (bulseye), versión 5.10.0-21-amd64.
++ Maven 4.0.0-alpha-5.
++ Javac 19.0.1.
++ JRE 19.0.1+10-21.
++ Docker 23.0.1.
+
+#### 5.3. Compilación y empaquetado del jar con Maven
 
 1. En una terminal, ubicarse en la carpeta del proyecto `tp01/ej5`.
 2. Ejecutar `mvn package`.
 
-#### 5.3. Cómo poner en funcionamiento el servidor (Linux)
+#### 5.4. Cómo poner en funcionamiento el servidor
 
 **_Requisitos previos:_** debe tener instalado Docker.
 
@@ -71,9 +79,11 @@ sudo docker run -p 8080:80 -it --name tp1-ej5 tp1:ej5
 
 <div align="justify">
 
-#### 5.4. Utilización del servicio
+#### 5.5. Utilización del servicio
 
-Para obtener información del clima como JSON, realizar una petición HTTP GET al servidor, con endpoint `/clima`. Esto se puede hacer, por ejemplo, con curl, de la siguiente forma:
+**_Recomendación:_** instalar el paquete `jq`, que ayudará a visualizar el resultado en formato JSON de forma más legible: `sudo apt-get install jq`.
+
+Para obtener información del clima, que será recibida en formato JSON, realizar una petición HTTP GET al servidor, con endpoint `/clima`. Esto se puede hacer, por ejemplo, con `curl` (y luego se puede formatear con `jq`), de la siguiente forma:
 
 ```sh
 curl localhost:8080/clima | jq
@@ -81,6 +91,10 @@ curl localhost:8080/clima | jq
 
 A continuación, un ejemplo del resultado:
 
+</div>
+
+<center>
+
 ![Ejemplo del servicio](/tp01/ej5/img/ejemplo.png "Ejemplo del servicio.")
 
-</div>
+</center>

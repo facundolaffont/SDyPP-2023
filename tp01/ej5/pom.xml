@@ -46,7 +46,7 @@
 				<directory>src/main/resources</directory>
 				<excludes>
 					<!-- Excluye a la carpeta de la BD de geolocalizaciones del empaquetado del jar -->
-					<exclude>geolite2-city-bd</exclude>
+					<exclude>geolite2-city-bd/</exclude>
 				</excludes>
 			</resource>
 		</resources>
