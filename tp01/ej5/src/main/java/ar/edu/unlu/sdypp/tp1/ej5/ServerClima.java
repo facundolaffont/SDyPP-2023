@@ -135,7 +135,7 @@ public class ServerClima {
 	 * @param clase - La clase que se va a utilizar para mapear el objeto.
 	 * @return Un objeto JSON mapeado o {@code null}.
 	 */
-	private Object _getObjetoJSON(String json, Class clase) {
+	private <T> Object _getObjetoJSON(String json, Class<T> clase) {
 		Object objeto = null;
 
 		// Mapea el JSON a un objeto IpPublica.

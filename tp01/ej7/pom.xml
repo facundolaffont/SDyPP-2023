@@ -6,36 +6,22 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>ar.edu.unlu.sdypp.grupo1</groupId>
-  <artifactId>ej7</artifactId>
-  <version>1.0</version>
+  <artifactId>tp1-ej7</artifactId>
+  <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Trabajo Práctico 1 - Ejercicio 7</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
+    <maven.compiler.source>19</maven.compiler.source>
+    <maven.compiler.target>19</maven.compiler.target>
     <java.version>19</java.version>
   </properties>
 
   <dependencies>
 
-    <!-- junit -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/org.springframework/spring-web -->
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-web</artifactId>
-      <version>6.0.7</version>
-    </dependency>
-
     <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
+    <!-- Permite crear fácilmente una API HTTP. -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -43,53 +29,60 @@
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/org.json/json -->
+    <!-- Permite manipular JSONs. -->
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>20230227</version>
     </dependency>
 
-  </dependencies>
+    <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java
+    <!- Permite manipular imágenes y contenedores de Docker.
+    <dependency>
+      <groupId>com.github.docker-java</groupId>
+      <artifactId>docker-java-core</artifactId>
+      <version>3.3.0</version>
 
-  <dependencyManagement>
-    <!-- org.slf4j -->
-    <dependencies>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>2.0.7</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.docker-java</groupId>
+      <artifactId>docker-java-transport-httpclient5</artifactId>
+      <version>3.3.0</version>
+
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+
+    </dependency>
+    -->
+
+  </dependencies>
 
   <build>
 
-    <plugins>
-      <!-- org.springframework.boot:spring-boot-maven-plugin -->
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>3.0.5</version>
-        <configuration>
-          <mainClass>com.baeldung.demo.DemoApplication</mainClass>
-          <layout>JAR</layout>
-        </configuration>
-      </plugin>
-    </plugins>
-
-    <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to
-      parent pom) -->
+    <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
 
-        <!-- clean lifecycle, see
-        https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
+        <!-- clean lifecycle,
+        see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
           <version>3.1.0</version>
         </plugin>
 
-        <!-- default lifecycle, jar packaging: see
-        https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
+        <!-- default lifecycle, jar packaging:
+        see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
           <version>3.0.2</version>
@@ -120,8 +113,8 @@
           <version>2.8.2</version>
         </plugin>
 
-        <!-- site lifecycle, see
-        https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
+        <!-- site lifecycle,
+        see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
         <plugin>
           <artifactId>maven-site-plugin</artifactId>
           <version>3.7.1</version>
