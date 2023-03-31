@@ -36,7 +36,8 @@ public class ServidorFront {
         // Determina si el JSON tiene una clave 'tarea'.
         // Si no la tiene, devuelve un JSON con el mensaje de error.
         if (!objetoJSON.has("tarea")) {
-            return objetoJSON.put(
+            return new JSONObject()
+                .put(
                 "Error",
                 "No se encuentra la clave 'tarea'."
             ).toString();
@@ -53,30 +54,30 @@ public class ServidorFront {
         String puerto = new String();
         switch (tarea) {
             case "calculo-pi":
-                System.out.println("* Petición: cálculo de PI.");
+                System.out.println("\n* Petición: cálculo de PI.");
                 puerto = "9000";
             break;
             case "suma":
-                System.out.println("* Petición: suma.");
+                System.out.println("\n* Petición: suma.");
                 puerto = "9001";
             break;
             default:
 
-                return objetoJSON.put(
+                return new JSONObject().put(
                     "Error",
                     "La tarea no está soportada por el servidor."
                 ).toString();
         }
 
+        /*
         // Levanta el docker correspondiente, en un nuevo bash.
         // ¡IMPORTANTE!: hay que levantar el servidor con permisos de root.
-        /*
-        String[] comando = new String[] {"/bin/bash", "-c", "docker run -d -p " + puerto + ":" + puerto + " " + tarea};
+        String[] comando = new String[] {"/bin/sh", "-c", "docker run -d -p " + puerto + ":" + puerto + " " + tarea};
         Process proceso;
         try { proceso = new ProcessBuilder(comando).start(); }
         catch (IOException e) { return _gestionarError(e, "Error del servidor.").toString(); }
 
-        // Si hubo error el ejecutar el comando, lo muestra en el bash,
+        // Si hubo error al ejecutar el comando, lo muestra en el bash,
         // y notifica al cliente.
         InputStream inputStream = proceso.getErrorStream();
         int byteLeido;
@@ -106,8 +107,7 @@ public class ServidorFront {
         e.printStackTrace();
 
         // Devuelve el mensaje para el usuario.
-        JSONObject objetoJSON = new JSONObject();
-        return objetoJSON.put(
+        return new JSONObject().put(
             "Error",
             mensaje
         );
@@ -154,7 +154,7 @@ public class ServidorFront {
         int codigoRespuesta = 0;
         try { codigoRespuesta = conexionHTTP.getResponseCode(); }
         catch (IOException e) { return _gestionarError(e, "Error del servidor."); }
-        System.out.println("\n* Código de respuesta del servidor: " + codigoRespuesta);
+        System.out.println("* Código de respuesta del servidor: " + codigoRespuesta);
 
         // Lee la respuesta, y devuelve un JSON de error, si lo hubo.
         StringBuilder respuesta = new StringBuilder();

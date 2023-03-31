@@ -1,0 +1,10 @@
+build:
+  calculo-pi:
+    context: calculo-pi
+  suma:
+    context: suma
+  front:
+    context: front
+    depends_on:
+      - calculo-pi
+      - suma

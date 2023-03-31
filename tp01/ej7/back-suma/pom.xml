@@ -51,18 +51,6 @@
   <build>
 
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.0.2</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>ar.edu.unlu.sdypp.grupo1.BackSuma</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
 
       <!-- Agrega a la clase en el MANIFEST.MF -->
       <plugin>

@@ -1,13 +1,11 @@
 package ar.edu.unlu.sdypp.grupo1;
 
 import java.math.BigDecimal;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +23,7 @@ public class BackSuma {
      * Precondiciones: asume que la primera clave es correcta: la clave "tarea" y
      * el valor "suma".
      * 
-     * @param json - El string del JSON recibido.
+     * @param json - El JSON recibido.
      * @return - Un JSON con el resultado, o con un mensaje de error.
      */
     @PostMapping(
@@ -51,11 +49,12 @@ public class BackSuma {
                 .put("Error", "JSON mal formado.")
                 .toString();
         }
+
         // Verificar que todos los sumandos sean numéricos.
         // Si algún elemento no es numérico, notifica del error al cliente.
         // Si todos los elementos son numéricos, realiza la suma.
         JSONArray arrayJSON = objetoJSON.getJSONArray("sumandos");
-        BigDecimal suma = new BigDecimal(0);
+        BigDecimal suma = new BigDecimal(0.0);
         for (Object elemento : arrayJSON) {
             if(elemento instanceof Integer)
                 suma = suma.add(
@@ -63,31 +62,20 @@ public class BackSuma {
                         (Integer) elemento
                     )
                 );
-            else if(elemento instanceof BigDecimal)
-                suma = suma.add(
-                    BigDecimal.valueOf(
-                        (Double) elemento
-                    )
-                );
             else return new JSONObject()
                     .put("Error", "JSON mal formado.")
                     .toString();
         }
+
+        System.out.println("\n* Petición de suma: " + objetoJSON.toString());
 
         return new JSONObject()
             .put("Respuesta", String.valueOf(suma))
             .toString();
     }
 
-    @GetMapping("ayuda")
-    public String mostrarAyuda() {
-        return "";
-    }
-
     public static void main( String[] args )
-    {
-        SpringApplication.run(BackSuma.class, args);
-    }
+    { SpringApplication.run(BackSuma.class, args); }
 
 
     /* Privado */
