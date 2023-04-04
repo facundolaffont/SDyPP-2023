@@ -91,12 +91,39 @@ public class ServidorFront {
                 huboError = true;
                 System.out.print((char) byteLeido);
             }
+        } catch (IOException e) {
+            if (huboError) { return _gestionarError(e, "Error del servidor.").toString(); }
+        }
+
+        // Envía la petición de realización de la tarea al contenedor remoto, y obtiene la respuesta.
+        String jsonRespuesta = _postParaJSON("http://localhost:" + puerto + "/", objetoJSON).toString();
+
+        // Detiene y elimina el contenedor en el que se realizó la tarea.
+        comando = new String[] {"/bin/sh", "-c",
+            "docker stop " + tarea +
+            " && docker rm " + tarea};
+        proceso.destroy();
+        try { inputStream.close(); } catch (IOException e) { return _gestionarError(e, "Error del servidor.").toString(); }
+        try { proceso = new ProcessBuilder(comando).start(); }
+        catch (IOException e) { return _gestionarError(e, "Error del servidor.").toString(); }
+
+        // Si hubo error al ejecutar el comando, lo muestra en el bash,
+        // y notifica al cliente.
+        inputStream = proceso.getErrorStream();
+        huboError = false;
+        try {
+            while((byteLeido = inputStream.read()) > -1) {
+                huboError = true;
+                System.out.print((char) byteLeido);
+            }
+
+            inputStream.close();
         } catch (IOException e) { 
             if (huboError) { return _gestionarError(e, "Error del servidor.").toString(); }
         }
 
-        // Envía la orden de tarea al nuevo contenedor y obtiene los resultados.
-        return _postParaJSON("http://localhost:" + puerto + "/", objetoJSON).toString();
+        // Devuelve la respuesta que generó la tarea llamada, en formato JSON, como String.
+        return jsonRespuesta;
     }
 
     public static void main(String[] args)
