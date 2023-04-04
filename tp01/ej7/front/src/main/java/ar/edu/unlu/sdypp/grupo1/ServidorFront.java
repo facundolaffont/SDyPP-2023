@@ -69,10 +69,14 @@ public class ServidorFront {
                 ).toString();
         }
 
-        /*
         // Levanta el docker correspondiente, en un nuevo bash.
         // ¡IMPORTANTE!: hay que levantar el servidor con permisos de root.
-        String[] comando = new String[] {"/bin/sh", "-c", "docker run -d -p " + puerto + ":" + puerto + " " + tarea};
+        String[] comando = new String[] {"/bin/sh", "-c",
+            "docker run" +
+            " -d" +
+            " -p " + puerto + ":" + puerto +
+            " --name " + tarea +
+            " " + tarea};
         Process proceso;
         try { proceso = new ProcessBuilder(comando).start(); }
         catch (IOException e) { return _gestionarError(e, "Error del servidor.").toString(); }
@@ -90,7 +94,6 @@ public class ServidorFront {
         } catch (IOException e) { 
             if (huboError) { return _gestionarError(e, "Error del servidor.").toString(); }
         }
-        */
 
         // Envía la orden de tarea al nuevo contenedor y obtiene los resultados.
         return _postParaJSON("http://localhost:" + puerto + "/", objetoJSON).toString();
