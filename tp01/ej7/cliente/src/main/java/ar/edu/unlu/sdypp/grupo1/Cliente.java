@@ -189,23 +189,6 @@ public class Cliente {
     // o null si no es soportada. Si sólo presiona Enter, se termina
     // el proceso, y si ocurre alguna excepción, termina el proceso.
     private JSONArray obtenerParametrosEnArregloJSON() {
-        /*
-        Método A)
-        * Se obtiene el ingreso del usuario, teniendo en cuenta que, antes
-        de presionar Enter, el usuario puede: (a) ingresar un entero,
-        (b) ingresar algo que no sea un entero, (c) no ingresar nada, o
-        (d) ingresar "salir". (1)
-        * Si (d):
-            * El sistema termina su ejecución normalmente.
-        * Si no, si (b):
-            * El sistema sigue la ejecución en (1).
-        * Si no, si (c):
-            * Se construye el arreglo JSON.
-        * Si no, si (a):
-            * Se agrega el entero al arreglo JSON.
-            * Devuelve, a la función que llama, el entero ingresado.
-        */
-        
         String entrada = null;
         boolean seguir = true;
         int entero;

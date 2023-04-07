@@ -74,6 +74,7 @@ public class ServidorFront {
         String[] comando = new String[] {"/bin/sh", "-c",
             "docker run" +
             " -d" +
+            " --rm" +
             " -p " + puerto + ":" + puerto +
             " --name " + tarea +
             " " + tarea};
@@ -98,10 +99,8 @@ public class ServidorFront {
         // Envía la petición de realización de la tarea al contenedor remoto, y obtiene la respuesta.
         String jsonRespuesta = postParaJSON("http://localhost:" + puerto + "/", objetoJSON).toString();
 
-        // Detiene y elimina el contenedor en el que se realizó la tarea.
-        comando = new String[] {"/bin/sh", "-c",
-            "docker stop " + tarea +
-            " && docker rm " + tarea};
+        // Detiene el contenedor en el que se realizó la tarea.
+        comando = new String[] {"/bin/sh", "-c", "docker stop " + tarea};
         proceso.destroy();
         try { inputStream.close(); } catch (IOException e) { return gestionarError(e, "Error del servidor.").toString(); }
         try { proceso = new ProcessBuilder(comando).start(); }
@@ -148,15 +147,15 @@ public class ServidorFront {
      * respuesta obtenida (que debe ser un JSON), se retorna tal cual, o
      * se retorna un JSON que contiene un error.
 	 * 
-	 * @param url - Endpoint de la API.
+	 * @param urlString - Endpoint de la API.
      * @param json - JSON que se envía en el cuerpo de la petición.
 	 * @return Un JSON, cuyo primer campo será el resultado, o será "Error" si hubo un problema.
 	 */
-	private JSONObject postParaJSON(String url, JSONObject json) {
+	private JSONObject postParaJSON(String urlString, JSONObject json) {
         
         // Verifica si la URL está mal formada. Si es así, devuelve un JSON de error, si lo hubo.
         URL url;
-        try { url = new URL(url); }
+        try { url = new URL(urlString); }
         catch (MalformedURLException e) { return gestionarError(e, "Error del servidor."); }
 
         // Establece la conexión, y devuelve un JSON de error, si lo hubo.
