@@ -31,7 +31,7 @@ public class ServidorFront {
         // Si no es un JSON, devuelve un JSON con el mensaje de error.
         JSONObject objetoJSON = new JSONObject();
         try { objetoJSON = new JSONObject(json); }
-        catch (JSONException e) { return _gestionarError(e, "JSON mal formado.").toString(); }
+        catch (JSONException e) { return gestionarError(e, "JSON mal formado.").toString(); }
 
         // Determina si el JSON tiene una clave 'tarea'.
         // Si no la tiene, devuelve un JSON con el mensaje de error.
@@ -47,7 +47,7 @@ public class ServidorFront {
         // Si no lo es, devuelve un JSON con el mensaje de error.
         String tarea = new String();
         try { tarea = objetoJSON.getString("tarea"); }
-        catch (JSONException e) { return _gestionarError(e, "El valor de la clave 'tarea' debe ser una cadena de texto.").toString(); }
+        catch (JSONException e) { return gestionarError(e, "El valor de la clave 'tarea' debe ser una cadena de texto.").toString(); }
 
         // Determina si la tarea es soportada por el servidor.
         // Si no lo está, devuelve un JSON con el mensaje de error.
@@ -79,7 +79,7 @@ public class ServidorFront {
             " " + tarea};
         Process proceso;
         try { proceso = new ProcessBuilder(comando).start(); }
-        catch (IOException e) { return _gestionarError(e, "Error del servidor.").toString(); }
+        catch (IOException e) { return gestionarError(e, "Error del servidor.").toString(); }
 
         // Si hubo error al ejecutar el comando, lo muestra en el bash,
         // y notifica al cliente.
@@ -92,20 +92,20 @@ public class ServidorFront {
                 System.out.print((char) byteLeido);
             }
         } catch (IOException e) {
-            if (huboError) { return _gestionarError(e, "Error del servidor.").toString(); }
+            if (huboError) { return gestionarError(e, "Error del servidor.").toString(); }
         }
 
         // Envía la petición de realización de la tarea al contenedor remoto, y obtiene la respuesta.
-        String jsonRespuesta = _postParaJSON("http://localhost:" + puerto + "/", objetoJSON).toString();
+        String jsonRespuesta = postParaJSON("http://localhost:" + puerto + "/", objetoJSON).toString();
 
         // Detiene y elimina el contenedor en el que se realizó la tarea.
         comando = new String[] {"/bin/sh", "-c",
             "docker stop " + tarea +
             " && docker rm " + tarea};
         proceso.destroy();
-        try { inputStream.close(); } catch (IOException e) { return _gestionarError(e, "Error del servidor.").toString(); }
+        try { inputStream.close(); } catch (IOException e) { return gestionarError(e, "Error del servidor.").toString(); }
         try { proceso = new ProcessBuilder(comando).start(); }
-        catch (IOException e) { return _gestionarError(e, "Error del servidor.").toString(); }
+        catch (IOException e) { return gestionarError(e, "Error del servidor.").toString(); }
 
         // Si hubo error al ejecutar el comando, lo muestra en el bash,
         // y notifica al cliente.
@@ -119,7 +119,7 @@ public class ServidorFront {
 
             inputStream.close();
         } catch (IOException e) { 
-            if (huboError) { return _gestionarError(e, "Error del servidor.").toString(); }
+            if (huboError) { return gestionarError(e, "Error del servidor.").toString(); }
         }
 
         // Devuelve la respuesta que generó la tarea llamada, en formato JSON, como String.
@@ -132,7 +132,7 @@ public class ServidorFront {
 
     /* Privado */
 
-    private JSONObject _gestionarError(Exception e, String mensaje) {
+    private JSONObject gestionarError(Exception e, String mensaje) {
         // Muestra el mensaje en la consola del servidor.
         e.printStackTrace();
 
@@ -152,21 +152,21 @@ public class ServidorFront {
      * @param json - JSON que se envía en el cuerpo de la petición.
 	 * @return Un JSON, cuyo primer campo será el resultado, o será "Error" si hubo un problema.
 	 */
-	private JSONObject _postParaJSON(String url, JSONObject json) {
+	private JSONObject postParaJSON(String url, JSONObject json) {
         
         // Verifica si la URL está mal formada. Si es así, devuelve un JSON de error, si lo hubo.
-        URL _url;
-        try { _url = new URL(url); }
-        catch (MalformedURLException e) { return _gestionarError(e, "Error del servidor."); }
+        URL url;
+        try { url = new URL(url); }
+        catch (MalformedURLException e) { return gestionarError(e, "Error del servidor."); }
 
         // Establece la conexión, y devuelve un JSON de error, si lo hubo.
         HttpURLConnection conexionHTTP;
-        try { conexionHTTP = (HttpURLConnection) _url.openConnection(); }
-        catch (IOException e) { return _gestionarError(e, "Error del servidor."); }
+        try { conexionHTTP = (HttpURLConnection) url.openConnection(); }
+        catch (IOException e) { return gestionarError(e, "Error del servidor."); }
 
         // Establece el método de envío, y envía un JSON de error, si lo hubo.
         try { conexionHTTP.setRequestMethod("POST"); }
-        catch (ProtocolException e) { return _gestionarError(e, "Error del servidor."); }
+        catch (ProtocolException e) { return gestionarError(e, "Error del servidor."); }
         conexionHTTP.setRequestProperty("Content-Type", "application/json");
 
         // Envía el post, y devuelve un JSON de error, si lo hubo.
@@ -178,12 +178,12 @@ public class ServidorFront {
             flujoSalida.flush();
             flujoSalida.close();
         }
-        catch (IOException e) { return _gestionarError(e, "Error del servidor."); }
+        catch (IOException e) { return gestionarError(e, "Error del servidor."); }
 
         // Obtiene el código de respuesta, y devuelve un JSON de error, si lo hubo.
         int codigoRespuesta = 0;
         try { codigoRespuesta = conexionHTTP.getResponseCode(); }
-        catch (IOException e) { return _gestionarError(e, "Error del servidor."); }
+        catch (IOException e) { return gestionarError(e, "Error del servidor."); }
         System.out.println("* Código de respuesta del servidor: " + codigoRespuesta);
 
         // Lee la respuesta, y devuelve un JSON de error, si lo hubo.
@@ -194,7 +194,7 @@ public class ServidorFront {
             String lineaEntrante;
             while ((lineaEntrante = bufferReader.readLine()) != null) { respuesta.append(lineaEntrante); }
             bufferReader.close();
-        } catch (IOException e) { return _gestionarError(e, "Error del servidor."); }
+        } catch (IOException e) { return gestionarError(e, "Error del servidor."); }
 
         // Devuelve el JSON, ya sea con error, o con la respuesta del servidor.
         return new JSONObject(respuesta.toString());
