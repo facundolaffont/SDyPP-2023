@@ -61,7 +61,7 @@
             <configuration>
               <archive>
                 <manifest>
-                  <mainClass>ar/edu/unlu/sdypp/grupo1/ServidorFront</mainClass>
+                  <mainClass>ar/edu/unlu/sdypp/grupo1/Cliente</mainClass>
                 </manifest>
               </archive>
               <descriptorRefs>

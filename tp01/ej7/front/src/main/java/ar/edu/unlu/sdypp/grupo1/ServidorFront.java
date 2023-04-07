@@ -1,16 +1,8 @@
 package ar.edu.unlu.sdypp.grupo1;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.io.*;
+import java.net.*;
+import org.json.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -74,6 +66,7 @@ public class ServidorFront {
         String[] comando = new String[] {"/bin/sh", "-c",
             "docker run" +
             " -d" +
+            " -ti" +
             " --rm" +
             " -p " + puerto + ":" + puerto +
             " --name " + tarea +
@@ -95,6 +88,8 @@ public class ServidorFront {
         } catch (IOException e) {
             if (huboError) { return gestionarError(e, "Error del servidor.").toString(); }
         }
+        try { Thread.sleep(5000); }
+        catch (InterruptedException e) {}
 
         // Envía la petición de realización de la tarea al contenedor remoto, y obtiene la respuesta.
         String jsonRespuesta = postParaJSON("http://localhost:" + puerto + "/", objetoJSON).toString();

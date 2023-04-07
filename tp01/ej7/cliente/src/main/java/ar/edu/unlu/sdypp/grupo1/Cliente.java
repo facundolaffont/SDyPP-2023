@@ -14,7 +14,7 @@ public class Cliente {
         // Registra el endpoint de la API a la que se enviarán
         // las tareas.
         endpoint = urlEndpoint;
-        
+
         // Carga las operaciones que el cliente conoce.
         tareasSoportadas = new ArrayList<String>();
         tareasSoportadas.add("suma");
@@ -26,19 +26,18 @@ public class Cliente {
     public static void main(String[] args) {
         // Si no se pasó, como argumento, la URL del endpoint,
         // notifica al cliente y termina el programa.
+        /* DEBUG
         if(args.length != 1) {
             System.out.println(
-                "SINOPSIS"
-                + "\tX <url-endpoint>"
-                + "\n\n"
+                "SINOPSIS\n\t" +
+                    "X <url-endpoint>\n\n" +
 
-                + "DESCRIPCIÓN"
-                + "\tObtiene del usuario la tarea a ejecutar, y envía la petición de"
-                + "\tprocesamiento a <url-endpoint>."
+                "DESCRIPCIÓN\n\t" +
+                    "Obtiene del usuario la tarea a ejecutar, y envía la petición de\n\t" +
+                    "procesamiento a <url-endpoint>."
             );
-        }
-
-        new Cliente(args[0]);
+        } else new Cliente(args[0]); */
+        new Cliente("http://localhost:8080/ejecutar-tarea-remota"); // DEBUG
     }
 
 
@@ -46,31 +45,50 @@ public class Cliente {
 
     private ArrayList<String> tareasSoportadas;
     private String endpoint;
+    private Scanner scanner;
 
     private void init() {
-        System.out.println("Bienvenido!\n");
+        // Inicializo escáner, para leer la entrada de usuario.
+        scanner = new Scanner(System.in);
+
+        System.out.println("\n¡Bienvenido!");
 
         do {
-            // Le pide al usuario la tarea.
-            String tarea = obtenerTarea();
-            
-            // Obtiene un arreglo JSON con los parámetros.
-            JSONArray parametros = obtenerParametrosEnArregloJSON();
-            
-            // Construye el requerimiento en formato JSON.
+            // Le pide al usuario la tarea, y la añade al JSON que se
+            // va a enviar.
             JSONObject objetoJSON = new JSONObject();
+            String tarea = obtenerTarea();
             objetoJSON.put("tarea", tarea);
-            objetoJSON.put("parametros", parametros);
+            
+            switch(tarea) {
+                case "suma":
+                    // Obtiene un arreglo JSON.
+                    objetoJSON.put("parametros",
+                        obtenerParametrosEnArregloJSON()
+                    );
+                    break;
+                case "calculo-pi":
+                    // Obtiene un entero.
+                    objetoJSON.put("parametros",
+                        obtenerEntero()
+                    );
+                    break;
+                default: break;
+            }
             
             // Envía el requerimiento al servidor, y obtiene y muestra
             // la respuesta.
+            System.out.println("\nEsperando respuesta...");
             objetoJSON = postParaJSON(endpoint, objetoJSON);
 
             // Muestra el resultado.
-            StringWriter writer = new StringWriter();
-            objetoJSON.write(writer);
-            System.out.println(writer.toString());
+            System.out.println(objetoJSON.toString(4));
         } while (true);
+    }
+
+    private void terminarProceso(int codigoTerminacion) {
+        scanner.close();
+        System.exit(codigoTerminacion);
     }
 
     /**
@@ -114,7 +132,7 @@ public class Cliente {
         int codigoRespuesta = 0;
         try { codigoRespuesta = conexionHTTP.getResponseCode(); }
         catch (IOException e) { return gestionarError(e, "Error del servidor."); }
-        System.out.println("* Código de respuesta del servidor: " + codigoRespuesta);
+        System.out.println("\nCódigo de respuesta del servidor: " + codigoRespuesta);
 
         // Lee la respuesta, y devuelve un JSON de error, si lo hubo.
         StringBuilder respuesta = new StringBuilder();
@@ -153,77 +171,72 @@ public class Cliente {
      */
     private String obtenerTarea() {
         String tarea = null;
-        Scanner scanner = new Scanner(System.in);
         do {
             // Lee la entrada del usuario.
-            System.out.print("Ingrese la tarea que desea realizar (o \"salir\" para terminar el programa): ");
+            System.out.print("\nIngrese la tarea que desea realizar (o \"salir\" para terminar el programa): ");
             try { tarea = scanner.nextLine(); }
 
             // Si hubo un problema, termina el proceso.
             catch (Exception e) {
                 e.getStackTrace();
-                scanner.close();
-                System.exit(1);
+                terminarProceso(1);
             }
 
             // Si ingresó "salir", termina el proceso.
-            if(tarea.equals("salir")) {
-                scanner.close();
-                System.exit(0);
-            } 
+            if(tarea.equals("salir")) terminarProceso(0);
 
             // Compara al texto ingresado por el usuario con una lista de comandos.
             // Si no lo encuentra, notifica al usuario que la operación no está soportada.
             else if(!tareasSoportadas.contains(tarea)) {
                 tarea = null;
-                System.out.println("Operación no soportada. Vuelva a intentarlo.");
+                System.out.println("\nOperación no soportada. Vuelva a intentarlo.");
             }
         } while (tarea == null);
 
         // Devuelve el nombre de una tarea válida.
-        scanner.close();
         return tarea;
     }
 
-    // Le pide al usuario que ingrese un entero, y devuelve el mismo,
-    // o null si no es soportada. Si sólo presiona Enter, se termina
-    // el proceso, y si ocurre alguna excepción, termina el proceso.
+    /**
+     * Le permite al usuario indicar si quiere terminar la ejecución o construir una
+     * lista de enteros, pasando la lista a la función que llama, en este último caso.
+     *
+     * Itera hasta que el usuario decida no ingresar más enteros, o hasta que decida
+     * terminar la ejecución del programa.
+     *
+     * @return Un arreglo JSON de enteros.
+     */
     private JSONArray obtenerParametrosEnArregloJSON() {
         String entrada = null;
         boolean seguir = true;
         int entero;
-        Scanner scanner = new Scanner(System.in);
         JSONArray arrayJSON = new JSONArray();
         do {
             // Lee la entrada del usuario.
             System.out.print(
-                "Ingrese un entero; " +
+                "\nIngrese un entero;" +
                 (
                     !arrayJSON.isEmpty()
-                    ? "presione Enter sin realizar ningún ingreso, para indicarle al sistema que no quiere agregar más enteros; "
+                    ? " presione Enter sin realizar ningún ingreso, para indicarle al sistema que no quiere agregar más enteros;"
                     : ""
                 ) +
-                "o ingrese \"salir\" para terminar la ejecución del programa.");
+                " o ingrese \"salir\" para terminar la ejecución del programa: ");
             try { entrada = scanner.nextLine(); }
 
             // Si hubo un problema, termina el proceso.
             catch (Exception e) {
-                e.getStackTrace();
-                scanner.close();
-                System.exit(1);
+                e.printStackTrace();
+                terminarProceso(1);
             }
 
             // Si ingresó "salir", termina la ejecución del programa, normalmente.
-            if(entrada.equals("salir")) {
-                scanner.close();
-                System.exit(0);
-            }
+            if(entrada.equals("salir")) terminarProceso(0);
 
             // Si el usuario sólo presionó Enter, pero el arreglo JSON está vacío,
             // notifica al usuario que debe volver a realizar un ingreso.
             if(entrada.isEmpty()) {
                 if(arrayJSON.isEmpty())
-                    System.out.println("El ingreso no es válido; por favor, vuelva a intentar.");
+                    System.out.println("\nEl ingreso no es válido; por favor, vuelva a intentar.");
 
             // Si el usuario sólo presionó Enter, y el arreglo JSON no está vacío,
             // deja de pedirle ingresos al usuario.
@@ -237,11 +250,58 @@ public class Cliente {
             }
             
             // Vuelve a pedirle un ingreso, porque el valor no es un entero.
-            catch(Exception e) { System.out.println("Debe ingresar un entero."); }
+            catch(Exception e) { System.out.println("\nDebe ingresar un entero."); }
         } while (seguir);
 
         // Devuelve el nombre de una tarea válida o null.
-        scanner.close();
         return arrayJSON;
+    }
+
+    /**
+     * Le permite al usuario indicar si quiere terminar la ejecución o obtener un
+     * entero, pasándolo a la función que llama, en este último caso.
+     *
+     * Itera hasta que el usuario ingrese un entero, o hasta que decida terminar la
+     * ejecución del programa.
+     *
+     * @return Un entero.
+     */
+    private int obtenerEntero() {
+        String entrada = null;
+        boolean seguir = true;
+        int entero = 0;
+        do {
+            // Lee la entrada del usuario.
+            System.out.print(
+                "\nIngrese un entero;" +
+                " o ingrese \"salir\" para terminar la ejecución del programa: ");
+            try { entrada = scanner.nextLine(); }
+
+            // Si hubo un problema, termina el proceso.
+            catch (Exception e) {
+                e.printStackTrace();
+                terminarProceso(1);
+            }
+
+            // Si ingresó "salir", termina la ejecución del programa, normalmente.
+            if(entrada.equals("salir")) terminarProceso(0);
+
+            // Si el usuario sólo presionó Enter, pero el arreglo JSON está vacío,
+            // notifica al usuario que debe volver a realizar un ingreso.
+            if(entrada.isEmpty())
+                System.out.println("\nDebe ingresar un entero; por favor, vuelva a intentar.");
+
+            // Añade el entero ingresado por el usuario al arreglo JSON.
+            else try {
+                entero = Integer.valueOf(entrada);
+                seguir = false;
+            }
+            
+            // Vuelve a pedirle un ingreso, porque el valor no es un entero.
+            catch(Exception e) { System.out.println("\nDebe ingresar un entero."); }
+        } while (seguir);
+
+        // Devuelve el nombre de una tarea válida o null.
+        return entero;
     }
 }

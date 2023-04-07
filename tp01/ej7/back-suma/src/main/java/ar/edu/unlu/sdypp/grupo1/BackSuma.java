@@ -44,7 +44,7 @@ public class BackSuma {
                 .put("Error", "JSON mal formado.")
                 .toString();
         }
-        if (!objetoJSON.has("sumandos")) {
+        if (!objetoJSON.has("parametros")) {
             return new JSONObject()
                 .put("Error", "JSON mal formado.")
                 .toString();
@@ -53,7 +53,7 @@ public class BackSuma {
         // Verificar que todos los sumandos sean numéricos.
         // Si algún elemento no es numérico, notifica del error al cliente.
         // Si todos los elementos son numéricos, realiza la suma.
-        JSONArray arrayJSON = objetoJSON.getJSONArray("sumandos");
+        JSONArray arrayJSON = objetoJSON.getJSONArray("parametros");
         BigDecimal suma = new BigDecimal(0.0);
         for (Object elemento : arrayJSON) {
             if(elemento instanceof Integer)

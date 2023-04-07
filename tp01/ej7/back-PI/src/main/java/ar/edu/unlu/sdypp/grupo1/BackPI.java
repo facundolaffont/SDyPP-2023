@@ -1,5 +1,7 @@
 package ar.edu.unlu.sdypp.grupo1;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
@@ -37,15 +39,38 @@ public class BackPI {
 
         // Determina si el JSON está bien formado.
         // Si no lo está, devuelve un JSON con el mensaje de error.
-        if (objetoJSON.length() != 1) {
+        if (objetoJSON.length() != 2) {
             return new JSONObject()
                 .put("Error", "JSON mal formado.")
                 .toString();
         }
 
+        // Determina si la cantidad de decimales está permitida.
+        int cantDecimales = objetoJSON.getInt("parametros");
+        if (cantDecimales > 1000 || cantDecimales < 0)
+            return new JSONObject()
+                .put("Error", "La cantidad de decimales debe ser un entero entre 0 y 1000.")
+                .toString();
+
         // Calcula PI y lo devuelve en formato JSON.
+        //double pi = Math.PI;
+        BigDecimal pi = BigDecimal.ZERO;
+        BigDecimal limite = new BigDecimal(10000000);
+        BigDecimal signoDelTermino = BigDecimal.ONE;
+        BigDecimal unoNegativo = BigDecimal.ONE.subtract(BigDecimal.TWO);
+        for (BigDecimal iteracion = BigDecimal.ONE; iteracion.compareTo(limite) <= 0; iteracion = iteracion.add(BigDecimal.TWO)) {
+            pi = pi.add(
+                signoDelTermino.divide(iteracion, 1000, RoundingMode.CEILING)
+            );
+            signoDelTermino = signoDelTermino.multiply(unoNegativo);
+        }
         return new JSONObject()
-            .put("Respuesta", Math.PI)
+            .put(
+                "Respuesta",
+                pi.multiply(
+                    new BigDecimal(4)
+                ).setScale(cantDecimales, RoundingMode.HALF_UP)
+            )
             .toString();
     }
 
