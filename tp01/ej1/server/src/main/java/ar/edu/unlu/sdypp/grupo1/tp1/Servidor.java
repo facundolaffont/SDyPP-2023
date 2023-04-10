@@ -1,4 +1,4 @@
-package tp01.ej01.src;
+package ar.edu.unlu.sdypp.grupo1.tp1;
 
 import java.io.*;
 import java.net.*;
