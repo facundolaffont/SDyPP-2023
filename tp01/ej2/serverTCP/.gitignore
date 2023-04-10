@@ -1,0 +1,2 @@
+target/*
+!target/ej2-servidor-tcp-1.jar

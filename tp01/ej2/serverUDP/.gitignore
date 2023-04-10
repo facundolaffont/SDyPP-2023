@@ -1,0 +1,2 @@
+target/*
+!target/ej2-servidor-udp-1.jar
