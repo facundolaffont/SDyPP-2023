@@ -1,0 +1,34 @@
+name: tp1-ej7
+services:
+
+  front:
+    build: front/.
+    ports:
+      - 8080:8080/tcp
+    container_name: front
+    depends_on:
+      - suma
+      - calculo-pi
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - red-contenedores
+
+  suma:
+    build: back-suma/.
+    ports:
+      - 9001:9001/tcp
+    container_name: suma
+    networks:
+      - red-contenedores
+
+  calculo-pi:
+    build: back-PI/.
+    ports:
+      - 9000:9000/tcp
+    container_name: calculo-pi
+    networks:
+      - red-contenedores
+
+networks:
+  red-contenedores:
