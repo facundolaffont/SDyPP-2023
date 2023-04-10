@@ -101,11 +101,11 @@ A continuación, un ejemplo del resultado:
 
 ### Ejercicio 7
 
-#### Consigna
+#### 7.1. Consigna
 
 Implementar un servidor que resuelva tareas genéricas. Para ello, se debe respetar lo siguiente:
 
-##### Servidor:
+##### 7.1.1.  Servidor
 
 + Debe ser desarrollado con tecnología HTTP.
 + Debe estar contenerizado y a la escucha de nuevas peticiones del cliente.
@@ -113,13 +113,57 @@ Implementar un servidor que resuelva tareas genéricas. Para ello, se debe respe
 + Debe recibir los parámetros del cliente a través de un método GET/POST HTTP con parámetros descritos en JSON.
 + El servidor levantará, sólo por el tiempo de ejecución, el servidor que brinda servicio de procesamiento (denominado en esta consigna "servicio tarea") como un contenedor. Una vez levantado, se le realizará a este servicio tarea una petición ejecutarTarea() (es decir, le comunicará los parámetros), y esperará los resultados para luego enviárselos al cliente.
 
-##### Servicio tarea:
+##### 7.1.2. Servicio tarea
 
 + Debe ser un web server.
 + Debe implementar el método ejecutarTarea().
 + Debe recibir los parámetros en formato JSON.
 + Se debe paquetizar la solución como imagen Docker, y se la debe publicar en el registro de Docker Hub.
 
-##### Cliente:
+##### 7.1.3. Cliente
 
 + Conociendo el servicio tarea desarrollado, el cliente debe realizar una petición (GET/POST HTTP) al servidor, con los parámetros necesarios en formato JSON, determinando el cálculo a realizar, parámetros, datos e imagen docker (se puede incluir un usuario y contraseña si es un registro privado).
+
+#### 7.2. Software utilizado
+
++ Debian 11 (bulseye), versión 5.10.0-21-amd64.
++ Maven 4.0.0-alpha-5.
++ Javac 19.0.1.
++ JRE 19.0.1+10-21.
++ Docker 23.0.1.
+
+#### 7.3. Levantar los servicios
+
+En la consola, situarse en la carpeta `tp01/ej7` y ejecutar:
+
+```sh
+docker compose up
+```
+
+Esperar a que se terminen de generar los logs para que estén listos los servicios.
+
+#### 7.4. Ejecutar una petición utilizando cURL
+
+Para realizar una suma, desde otra consola, ejecutar:
+
+```sh
+curl \                                              
+-H "Content-Type: application/json" \
+-H "Accept: application/json" \
+-d '{"tarea":"suma","parametros":[1,2,3000,25]}' \
+-v \
+localhost:8080/ejecutar-tarea-remota
+```
+
+**_Nota:_** puede observar, en la consola donde se ejecutaron los servicios, cómo se procesa la información, mientras espera a recibir la respuesta.
+
+Igualmente, puede utilizar los siguientes parámetros para pedir que un servicio calcule PI con 1000 dígitos de precisión:
+
+```sh
+curl \                                              
+-H "Content-Type: application/json" \
+-H "Accept: application/json" \
+-d '{"tarea":"calculo-pi","parametros":1000}' \
+-v \
+localhost:8080/ejecutar-tarea-remota
+```

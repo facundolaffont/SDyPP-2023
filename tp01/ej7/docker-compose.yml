@@ -3,6 +3,7 @@ services:
 
   front:
     build: front/.
+    image: facundol/tp1-ej7-front:latest
     ports:
       - 8080:8080/tcp
     container_name: front
@@ -16,6 +17,7 @@ services:
 
   suma:
     build: back-suma/.
+    image: facundol/tp1-ej7-suma:latest
     ports:
       - 9001:9001/tcp
     container_name: suma
@@ -24,6 +26,7 @@ services:
 
   calculo-pi:
     build: back-PI/.
+    image: facundol/tp1-ej7-calculo-pi:latest
     ports:
       - 9000:9000/tcp
     container_name: calculo-pi
