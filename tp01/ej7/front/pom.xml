@@ -28,12 +28,41 @@
       <version>3.0.5</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.9.2</version>
+      <scope>test</scope>
+    </dependency>
+
     <!-- https://mvnrepository.com/artifact/org.json/json -->
     <!-- Permite manipular JSONs. -->
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>20220924</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java 
+    <dependency>
+      <groupId>com.github.docker-java</groupId>
+      <artifactId>docker-java</artifactId>
+      <version>3.3.0</version>
+    </dependency> -->
+
+    <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java-core -->
+    <dependency>
+      <groupId>com.github.docker-java</groupId>
+      <artifactId>docker-java-core</artifactId>
+      <version>3.3.0</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java-transport-httpclient5 -->
+    <dependency>
+      <groupId>com.github.docker-java</groupId>
+      <artifactId>docker-java-transport-httpclient5</artifactId>
+      <version>3.3.0</version>
     </dependency>
 
   </dependencies>

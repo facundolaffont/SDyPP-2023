@@ -2,16 +2,53 @@ package ar.edu.unlu.sdypp.grupo1;
 
 import java.io.*;
 import java.net.*;
+import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.json.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.core.DockerClientImpl;
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
+import com.github.dockerjava.transport.DockerHttpClient;
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.Ports.Binding;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
 
 @SpringBootApplication
 @RestController
 public class ServidorFront {
+
+    public ServidorFront() {
+
+        dockerClientConfig = DefaultDockerClientConfig
+            .createDefaultConfigBuilder()
+            .withDockerHost("unix:///var/run/docker.sock")
+            .build();
+        
+        dockerHttpClient = new ApacheDockerHttpClient.Builder()
+            .dockerHost(dockerClientConfig.getDockerHost())
+            .sslConfig(dockerClientConfig.getSSLConfig())
+            .maxConnections(100)
+            .connectionTimeout(Duration.ofSeconds(30))
+            .responseTimeout(Duration.ofSeconds(45))
+            .build();
+        
+        dockerClient = DockerClientImpl.getInstance(dockerClientConfig, dockerHttpClient);
+
+        dockerClient.stopContainerCmd("suma").exec();
+        dockerClient.stopContainerCmd("calculo-pi").exec();
+        dockerClient.removeContainerCmd("suma").exec();
+        dockerClient.removeContainerCmd("calculo-pi").exec();
+    }
 
     @PostMapping(
         value="/ejecutar-tarea-remota",
@@ -60,61 +97,43 @@ public class ServidorFront {
                     "La tarea no está soportada por el servidor."
                 ).toString();
         }
-
-        // Levanta el docker correspondiente, en un nuevo bash.
-        // ¡IMPORTANTE!: hay que levantar el servidor con permisos de root.
-        String[] comando = new String[] {"/bin/sh", "-c",
-            "docker run" +
-            " -d" +
-            " -ti" +
-            " --rm" +
-            " -p " + puerto + ":" + puerto +
-            " --name " + tarea +
-            " " + tarea};
-        Process proceso;
-        try { proceso = new ProcessBuilder(comando).start(); }
-        catch (IOException e) { return gestionarError(e, "Error del servidor.").toString(); }
-
-        // Si hubo error al ejecutar el comando, lo muestra en el bash,
-        // y notifica al cliente.
-        InputStream inputStream = proceso.getErrorStream();
-        int byteLeido;
-        boolean huboError = false;
-        try {
-            while((byteLeido = inputStream.read()) > -1) {
-                huboError = true;
-                System.out.print((char) byteLeido);
-            }
-        } catch (IOException e) {
-            if (huboError) { return gestionarError(e, "Error del servidor.").toString(); }
-        }
-        try { Thread.sleep(5000); }
+        
+        // Se crean las configuraciones para el host del contenedor.
+        HostConfig hostConfig = new HostConfig()
+            .withAutoRemove(true)
+            .withNetworkMode("tp1-ej7_red-contenedores")
+            .withPortBindings(
+                new Ports(
+                    new ExposedPort(Integer.parseInt(puerto)),
+                    new Binding("0.0.0.0", puerto)
+                )
+            );
+        
+        // Se crea el container (pero todavía no se corre).
+        CreateContainerResponse container = dockerClient
+            .createContainerCmd("tp1-ej7-" + tarea)
+            .withName(tarea)
+            .withHostConfig(hostConfig)
+            .exec();
+        
+        // Se corre el container.
+        dockerClient
+            .startContainerCmd(container.getId())
+            .exec();
+        
+        CountDownLatch latch = new CountDownLatch(1);
+        try { latch.await(5, TimeUnit.SECONDS); }
         catch (InterruptedException e) {}
 
-        // Envía la petición de realización de la tarea al contenedor remoto, y obtiene la respuesta.
-        String jsonRespuesta = postParaJSON("http://localhost:" + puerto + "/", objetoJSON).toString();
+        // Envía la petición de realización de la tarea al contenedor remoto, y obtiene la respuesta (
+        // se hace uso de los nombres de contenedores como nombres de host que Docker habilita para todos los
+        // contenedores que pertenezcan a una misma red).
+        String jsonRespuesta = postParaJSON("http://" + tarea + ":" + puerto + "/", objetoJSON).toString();
 
-        // Detiene el contenedor en el que se realizó la tarea.
-        comando = new String[] {"/bin/sh", "-c", "docker stop " + tarea};
-        proceso.destroy();
-        try { inputStream.close(); } catch (IOException e) { return gestionarError(e, "Error del servidor.").toString(); }
-        try { proceso = new ProcessBuilder(comando).start(); }
-        catch (IOException e) { return gestionarError(e, "Error del servidor.").toString(); }
-
-        // Si hubo error al ejecutar el comando, lo muestra en el bash,
-        // y notifica al cliente.
-        inputStream = proceso.getErrorStream();
-        huboError = false;
-        try {
-            while((byteLeido = inputStream.read()) > -1) {
-                huboError = true;
-                System.out.print((char) byteLeido);
-            }
-
-            inputStream.close();
-        } catch (IOException e) { 
-            if (huboError) { return gestionarError(e, "Error del servidor.").toString(); }
-        }
+        // Para el container, y se borra por la configuración AutoRemove.
+        dockerClient
+            .stopContainerCmd(container.getId().toString())
+            .exec();
 
         // Devuelve la respuesta que generó la tarea llamada, en formato JSON, como String.
         return jsonRespuesta;
@@ -125,6 +144,10 @@ public class ServidorFront {
 
 
     /* Privado */
+
+    DockerClientConfig dockerClientConfig;
+    DockerHttpClient dockerHttpClient;
+    DockerClient dockerClient;
 
     private JSONObject gestionarError(Exception e, String mensaje) {
         // Muestra el mensaje en la consola del servidor.

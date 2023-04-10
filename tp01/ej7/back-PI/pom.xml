@@ -81,7 +81,7 @@
             <configuration>
               <archive>
                 <manifest>
-                  <mainClass>ar/edu/unlu/sdypp/grupo1/BackSuma</mainClass>
+                  <mainClass>ar/edu/unlu/sdypp/grupo1/BackPI</mainClass>
                 </manifest>
               </archive>
               <descriptorRefs>

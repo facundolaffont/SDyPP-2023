@@ -1,0 +1,6 @@
+name: tp1-ej7
+services:
+
+  suma:
+    build: back-suma/.
+    container_name: suma
