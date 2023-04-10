@@ -1,10 +1,6 @@
 # Sistemas Distribuidos y Programación Paralela
 
-<div align="justify">
-
 Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paralela, de la carrera de Licenciatura en Sistemas de Información de la Universidad Nacional de Luján.
-
-</div>
 
 ## Integrantes
 
@@ -16,29 +12,41 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 
 ### Ejercicio 1
 
-<div align="justify">
-
-#### Consigna
+#### 1.1. Consigna
 
 Crear un servidor, usando sockets TCP, que reciba un mensaje de texto y lo repita a su cliente. Desarrollar el correspondiente cliente que, además de enviar el mensaje, verifique el comportamiento del servidor.
 
-</div>
+#### 1.2. Software utilizado
+
++ Debian 11 (bulseye), versión 5.10.0-21-amd64.
++ Maven 4.0.0-alpha-5.
++ JDK 19.0.1.
+
+#### 1.3. Cómo probar el ejercicio
+
+1. Primero, en una consola levantamos el server:
+
+    ```sh
+    git clone https://github.com/facundolaffont/SDyPP-2023.git
+    cd SDyPP-2023/tp01/ej1/server
+    java -jar target/ej1-servidor-1.jar
+    ```
+
+2. Luego, en otra consola, situate en la carpeta `SDyPP-2023/tp01/ej1/cliente`, y ejecutá:
+
+    ```sh
+    java -jar target/ej1-cliente-1.jar
+    ```
 
 ### Ejercicio 2
 
-<div align="justify">
-
-#### Consigna
+#### 2.1. Consigna
 
 Modificar el servidor del ejercicio 1, para que pueda atender varios clientes a la vez. Crear, también, la versión UDP del servidor.
-
-</div>
 
 ### Ejercicio 5
 
 #### 5.1. Consigna
-
-<div align="justify">
 
 Realizar un servidor HTTP que devuelva información de clima del lugar donde reside el servidor.
 
@@ -46,8 +54,7 @@ Realizar un servidor HTTP que devuelva información de clima del lugar donde res
 
 + Debian 11 (bulseye), versión 5.10.0-21-amd64.
 + Maven 4.0.0-alpha-5.
-+ Javac 19.0.1.
-+ JRE 19.0.1+10-21.
++ JDK 19.0.1.
 + Docker 23.0.1.
 
 #### 5.3. Compilación y empaquetado del jar con Maven
@@ -61,23 +68,19 @@ Realizar un servidor HTTP que devuelva información de clima del lugar donde res
 
 1. Ejecutar desde una terminal los siguientes comandos:
 
-</div>
-
-```sh
-sudo docker build -t tp1:ej5 .
-```
+    ```sh
+    sudo docker build -t tp1:ej5 .
+    ```
 
 2. Una vez que se cree la imagen, ejecutar:
 
-```sh
-sudo docker run -p 8080:80 -it --name tp1-ej5 tp1:ej5
-```
+    ```sh
+    sudo docker run -p 8080:80 -it --name tp1-ej5 tp1:ej5
+    ```
 
 **_Nota:_** se puede reemplazar el puerto 8080 por cualquier otro puerto.
 
 **_Nota:_** el servidor se estará ejecutando en localhost, en el puerto elegido para el host (en este caso fue el 8080).
-
-<div align="justify">
 
 #### 5.5. Utilización del servicio
 
@@ -90,8 +93,6 @@ curl localhost:8080/clima | jq
 ```
 
 A continuación, un ejemplo del resultado:
-
-</div>
 
 <center>
 
@@ -128,8 +129,7 @@ Implementar un servidor que resuelva tareas genéricas. Para ello, se debe respe
 
 + Debian 11 (bulseye), versión 5.10.0-21-amd64.
 + Maven 4.0.0-alpha-5.
-+ Javac 19.0.1.
-+ JRE 19.0.1+10-21.
++ JDK 19.0.1.
 + Docker 23.0.1.
 
 #### 7.3. Levantar los servicios
