@@ -78,7 +78,7 @@ Modificar el servidor del ejercicio 1, para que pueda atender varios clientes a 
     
     **_Nota:_** ejecutar este comando varias veces para examinar cómo en el servidor se mezclan los mensajes de los diferentes procesos.
 
-### Ejercicio 5
+### Ejercicio 5 ![Documentación 100%](https://img.shields.io/badge/Documentaci%C3%B3n-%E2%9C%94-success)
 
 #### 5.1. Consigna
 
@@ -91,37 +91,21 @@ Realizar un servidor HTTP que devuelva información de clima del lugar donde res
 + JDK 19.0.1.
 + Docker 23.0.1.
 
-#### 5.3. Compilación y empaquetado del jar con Maven
+#### 5.3. Cómo poner en funcionamiento el servidor
 
-1. En una terminal, ubicarse en la carpeta del proyecto `tp01/ej5`.
-2. Ejecutar `mvn package`.
+Ejecutar desde una terminal el siguiente comando:
 
-#### 5.4. Cómo poner en funcionamiento el servidor
-
-**_Requisitos previos:_** debe tener instalado Docker.
-
-1. Ejecutar desde una terminal los siguientes comandos:
-
-    ```sh
-    sudo docker build -t tp1:ej5 .
-    ```
-
-2. Una vez que se cree la imagen, ejecutar:
-
-    ```sh
-    sudo docker run -p 8080:80 -it --name tp1-ej5 tp1:ej5
-    ```
+```sh
+docker run -p 8080:80 facundol/tp1-ej5
+```
 
 **_Nota:_** se puede reemplazar el puerto 8080 por cualquier otro puerto.
 
-**_Nota:_** el servidor se estará ejecutando en localhost, en el puerto elegido para el host (en este caso fue el 8080).
+#### 5.4. Utilización del servicio
 
-#### 5.5. Utilización del servicio
+**_Nota:_** debés tener instalado cURL, y es recomendable que instales el paquete `jq`, que ayudará a visualizar el resultado en formato JSON de forma más legible: `sudo apt-get install jq`.
 
-**_Recomendación:_** instalar el paquete `jq`, que ayudará a visualizar el resultado en formato JSON de forma más legible: `sudo apt-get install jq`.
-
-Para obtener información del clima, que será recibida en formato JSON, realizar una petición HTTP GET al servidor, con endpoint `/clima`. Esto se puede hacer, por ejemplo, con `curl` (y luego se puede formatear con `jq`), de la siguiente forma:
-
+Para obtener información del clima, que será recibida en formato JSON, realizar una petición HTTP GET al servidor, con endpoint `/clima`:
 ```sh
 curl localhost:8080/clima | jq
 ```
