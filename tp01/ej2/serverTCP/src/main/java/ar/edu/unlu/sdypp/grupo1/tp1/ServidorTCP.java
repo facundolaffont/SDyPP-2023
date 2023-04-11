@@ -22,7 +22,7 @@ public class ServidorTCP {
                 // vincula con la conexión establecida.
                 Socket socketDeCliente = socketDeServer.accept();
 
-                System.out.println("Nuevo cliente conectado desde " + socketDeCliente.getInetAddress().getHostName() + ".");
+                System.out.println("\nNuevo cliente conectado desde " + socketDeCliente.getInetAddress().getHostName() + ".");
 
                 // Ejecuta la tarea en un nuevo hilo.
                 pool.execute(new ManejadorDeCliente(socketDeCliente));
@@ -57,7 +57,7 @@ public class ServidorTCP {
             ) {
                 String lineaEntrante;
                 while ( ( lineaEntrante = in.readLine() ) != null ) {
-                    System.out.println("Mensaje recibido: '" + lineaEntrante + "'.");
+                    System.out.println("\nMensaje recibido: '" + lineaEntrante + "'.");
                     out.println(lineaEntrante);
                 }
                 
