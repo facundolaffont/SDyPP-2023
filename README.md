@@ -8,7 +8,7 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 + Joaquín Tossello.
 + Juan Pablo Carini.
 
-## Trabajo Práctico 1
+## Trabajo Práctico 1 ![Documentación 100%](https://img.shields.io/badge/Documentaci%C3%B3n-%E2%9C%94-success)
 
 ### Ejercicio 1
 
@@ -42,7 +42,7 @@ Crear un servidor, usando sockets TCP, que reciba un mensaje de texto y lo repit
     java -jar ej1-cliente-1.jar
     ```
 
-### Ejercicio 2
+### Ejercicio 2 ![Documentación 100%](https://img.shields.io/badge/Documentaci%C3%B3n-%E2%9C%94-success)
 
 #### 2.1. Consigna
 
