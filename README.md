@@ -168,9 +168,12 @@ Implementar un servidor que resuelva tareas genéricas. Para ello, se debe respe
 
 #### 7.3. Levantar los servicios
 
-En la consola, situarse en la carpeta `tp01/ej7` y ejecutar:
+**_Nota:_** debe tener instalado cURL.
+
+En la consola, ejecutar:
 
 ```sh
+curl -L -O -s "https://raw.githubusercontent.com/facundolaffont/SDyPP-2023/main/tp01/ej7/docker-compose.yml" && \
 docker compose up
 ```
 
