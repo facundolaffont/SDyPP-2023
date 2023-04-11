@@ -1,3 +1,5 @@
+package ar.edu.unlu.sdypp.grupo1.tp1;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
