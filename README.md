@@ -134,7 +134,7 @@ A continuación, un ejemplo del resultado:
 
 </center>
 
-### Ejercicio 7
+### Ejercicio 7 ![Documentación 100%](https://img.shields.io/badge/Documentaci%C3%B3n-%E2%9C%94-success)
 
 #### 7.1. Consigna
 
