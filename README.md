@@ -29,7 +29,7 @@ Crear un servidor, usando sockets TCP, que reciba un mensaje de texto y lo repit
 1. Primero, en una consola levantamos el server:
 
     ```sh
-    curl -LOs https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej1/server/target/ej1-servidor-1.jar && \ 
+    curl -LOs https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej1/server/target/ej1-servidor-1.jar && \
     echo "" && \
     java -jar ej1-servidor-1.jar
     ```
@@ -37,7 +37,7 @@ Crear un servidor, usando sockets TCP, que reciba un mensaje de texto y lo repit
 2. Luego, en otra consola, se ejecuta el cliente:
 
     ```sh
-    curl -LOs https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej1/cliente/target/ej1-cliente-1.jar && \ 
+    curl -LOs https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej1/cliente/target/ej1-cliente-1.jar && \
     echo "" && \
     java -jar ej1-cliente-1.jar
     ```
@@ -47,6 +47,35 @@ Crear un servidor, usando sockets TCP, que reciba un mensaje de texto y lo repit
 #### 2.1. Consigna
 
 Modificar el servidor del ejercicio 1, para que pueda atender varios clientes a la vez. Crear, también, la versión UDP del servidor.
+
+#### 2.2. Software utilizado
+
++ Debian 11 (bulseye), versión 5.10.0-21-amd64.
++ Maven 4.0.0-alpha-5.
++ JDK 19.0.1.
+
+#### 2.3. Cómo probar el ejercicio
+
+##### 2.3.1. Prueba del servidor TCP
+
+**_Nota:_** debe tener instalado cURL y parallel.
+
+1. Primero, en una consola levantamos el server:
+
+    ```sh
+    curl -LOs https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej2/serverTCP/target/ej2-servidor-tcp-1.jar && \
+    echo "" && \
+    java -jar ej2-servidor-tcp-1.jar
+    ```
+
+2. Luego, en otra consola, se ejecuta paralelamente el cliente:
+
+    ```sh
+    parallel java -jar ej1-cliente-1.jar -- {1..5}
+    ```
+
+    **_Nota:_** las tareas se ejecutarán de forma paralela sólo si así lo determina el SO. Modificando el valor '5' se puede cambiar la cantidad de tareas que se van a ejecutar de forma paralela, aunque su ejecución en paralelo dependerá de lo que se comentó recién.
+    **_Nota:_** ejecutar este comando varias veces para examinar cómo en el servidor se mezclan los mensajes de los diferentes procesos.
 
 ### Ejercicio 5
 
