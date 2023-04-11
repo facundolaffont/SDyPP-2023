@@ -24,18 +24,22 @@ Crear un servidor, usando sockets TCP, que reciba un mensaje de texto y lo repit
 
 #### 1.3. Cómo probar el ejercicio
 
+**_Nota:_** debe tener instalado cURL.
+
 1. Primero, en una consola levantamos el server:
 
     ```sh
-    git clone https://github.com/facundolaffont/SDyPP-2023.git
-    cd SDyPP-2023/tp01/ej1/server
-    java -jar target/ej1-servidor-1.jar
+    curl -LOs https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej1/server/target/ej1-servidor-1.jar && \ 
+    echo "" && \
+    java -jar ej1-servidor-1.jar
     ```
 
-2. Luego, en otra consola, situate en la carpeta `SDyPP-2023/tp01/ej1/cliente`, y ejecutá:
+2. Luego, en otra consola, se ejecuta el cliente:
 
     ```sh
-    java -jar target/ej1-cliente-1.jar
+    curl -LOs https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej1/cliente/target/ej1-cliente-1.jar && \ 
+    echo "" && \
+    java -jar ej1-cliente-1.jar
     ```
 
 ### Ejercicio 2
