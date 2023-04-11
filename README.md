@@ -75,6 +75,7 @@ Modificar el servidor del ejercicio 1, para que pueda atender varios clientes a 
     ```
 
     **_Nota:_** las tareas se ejecutarán de forma paralela sólo si así lo determina el SO. Modificando el valor '5' se puede cambiar la cantidad de tareas que se van a ejecutar de forma paralela, aunque su ejecución en paralelo dependerá de lo que se comentó recién.
+    
     **_Nota:_** ejecutar este comando varias veces para examinar cómo en el servidor se mezclan los mensajes de los diferentes procesos.
 
 ### Ejercicio 5
