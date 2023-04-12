@@ -12,19 +12,19 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 
 Se puede acceder al enlace del documento de cada ejercicio cliqueando en el títlo. En este documento sólo se plasman las consignas.
 
-### [Ejercicio 1](https://github.com/facundolaffont/SDyPP-2023/blob/main/tp01/ej1/README.md)
+### [Ejercicio 1](https://github.com/facundolaffont/SDyPP-2023/tree/readme/tp01/ej1)
 
 Crear un servidor, usando sockets TCP, que reciba un mensaje de texto y lo repita a su cliente. Desarrollar el correspondiente cliente que, además de enviar el mensaje, verifique el comportamiento del servidor.
 
-### [Ejercicio 2](https://github.com/facundolaffont/SDyPP-2023/blob/main/tp01/ej1/README.md)
+### [Ejercicio 2](https://github.com/facundolaffont/SDyPP-2023/tree/readme/tp01/ej2)
 
 Modificar el servidor del ejercicio 1, para que pueda atender varios clientes a la vez. Crear, también, la versión UDP del servidor.
 
-### [Ejercicio 5](https://github.com/facundolaffont/SDyPP-2023/blob/main/tp01/ej1/README.md)
+### [Ejercicio 5](https://github.com/facundolaffont/SDyPP-2023/tree/readme/tp01/ej5)
 
 Realizar un servidor HTTP que devuelva información de clima del lugar donde reside el servidor.
 
-### [Ejercicio 7](https://github.com/facundolaffont/SDyPP-2023/blob/main/tp01/ej1/README.md)
+### [Ejercicio 7](https://github.com/facundolaffont/SDyPP-2023/tree/readme/tp01/ej7)
 
 Implementar un servidor que resuelva tareas genéricas. Para ello, se debe respetar lo siguiente:
 
