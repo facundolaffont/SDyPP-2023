@@ -8,9 +8,9 @@ Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paral
 + Joaquín Tossello.
 + Juan Pablo Carini.
 
-## Trabajo Práctico 1 ![Documentación 100%](https://img.shields.io/badge/Documentaci%C3%B3n-%E2%9C%94-success)
+## Trabajo Práctico 1
 
-### Ejercicio 1
+### Ejercicio 1 ![Documentación 100%](https://img.shields.io/badge/Documentaci%C3%B3n-%E2%9C%94-success)
 
 #### 1.1. Consigna
 
