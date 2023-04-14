@@ -6,7 +6,9 @@
 + JDK 19.0.1.
 + Docker 23.0.1.
 
-## Cómo poner en funcionamiento el servidor
+## Cómo probar el ejercicio
+
+### Levantar el servidor
 
 Ejecutar desde una terminal el siguiente comando:
 
@@ -16,20 +18,31 @@ docker run -p 8080:80 facundol/tp1-ej5
 
 **_Nota:_** se puede reemplazar el puerto 8080 por cualquier otro puerto.
 
-## Utilización del servicio
+### Utilización del servicio con cURL
 
 **_Nota:_** debés tener instalado cURL, y es recomendable que instales el paquete `jq`, que ayudará a visualizar el resultado en formato JSON de forma más legible: `sudo apt-get install jq`.
 
 Para obtener información del clima, que será recibida en formato JSON, realizar una petición HTTP GET al servidor, con endpoint `/clima`:
+
 ```sh
 curl localhost:8080/clima | jq
 ```
 
-A continuación, un ejemplo del resultado:
+Ejemplo del resultado:
 
 <center>
 
 ![Ejemplo del servicio](img/ejemplo.png "Ejemplo del servicio.")
 
 </center>
+
+### Probar el servidor desde el cliente
+
+En otra consola, ejecutar:
+
+```sh
+curl -LOs https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej5/cliente/target/ej5-cliente-1-jar-with-dependencies.jar && \
+echo "" && \
+java -jar ej5-cliente-1-jar-with-dependencies.jar localhost:8080/clima | jq
+```
 

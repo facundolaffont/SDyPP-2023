@@ -16,7 +16,7 @@ public class Cliente {
         else {
             JSONObject json = getJSON("http://" + args[0]);
 
-            System.out.println("\n" +
+            System.out.println(
                 (
                     json == null
                     ? new JSONObject("{}")
@@ -55,12 +55,6 @@ public class Cliente {
         try { conexionHTTP.setRequestMethod("GET"); }
         catch (ProtocolException e) { return null; }
         conexionHTTP.setRequestProperty("Content-Type", "application/json");
-
-        // Obtiene el código de respuesta, y devuelve null, si hubo un error.
-        int codigoRespuesta = 0;
-        try { codigoRespuesta = conexionHTTP.getResponseCode(); }
-        catch (IOException e) { return null; }
-        System.out.println("\nCódigo de respuesta del servidor: " + codigoRespuesta);
 
         // Lee la respuesta, y devuelve un null, si hubo algún problema.
         StringBuilder respuesta = new StringBuilder();
