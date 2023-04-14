@@ -20,9 +20,21 @@ Crear un servidor, usando sockets TCP, que reciba un mensaje de texto y lo repit
 
 Modificar el servidor del ejercicio 1, para que pueda atender varios clientes a la vez. Crear, también, la versión UDP del servidor.
 
+### [Ejercicio 3](https://github.com/facundolaffont/SDyPP-2023/tree/main/tp01/ej3)
+
+Escribir un servidor de mensajes en colas, que permita a los clientes dejar un mensaje (identificando de alguna forma a quién se lo deja), y bajar los mensajes que le están dirigidos. La comunicación entre cliente y servidor debe ser mediante sockets, y el servidor debe poder atender varios clientes a la vez.
+
+### [Ejercicio 4](https://github.com/facundolaffont/SDyPP-2023/tree/main/tp01/ej4)
+
+Modificar el programa anterior para que el mensaje de la cola sea borrado por el servidor, una vez que el cliente confirma, mediante un mensaje de tipo ACK, que efectivamente recibió el mensaje que estaba en la cola.
+
 ### [Ejercicio 5](https://github.com/facundolaffont/SDyPP-2023/tree/main/tp01/ej5)
 
 Realizar un servidor HTTP que devuelva información de clima del lugar donde reside el servidor.
+
+### [Ejercicio 6](https://github.com/facundolaffont/SDyPP-2023/tree/main/tp01/ej6)
+
+Escribir un servidor utilizando Servidor Web HTTP, que ofrezca la posibilidad de sumar y restar vectores de enteros.
 
 ### [Ejercicio 7](https://github.com/facundolaffont/SDyPP-2023/tree/main/tp01/ej7)
 
