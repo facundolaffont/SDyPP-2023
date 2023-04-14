@@ -1,4 +1,4 @@
-package ar.edu.unlu.sdypp.tp1.ej5;
+package ar.edu.unlu.sdypp.grupo1;
 
 import java.io.BufferedReader;
 import java.io.File;
