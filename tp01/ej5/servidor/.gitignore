@@ -1,0 +1,4 @@
+!.gitignore
+.vscode
+target/*
+!target/ej5-server-1.jar
