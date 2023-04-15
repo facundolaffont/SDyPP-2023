@@ -1,4 +1,5 @@
 # Ejercicio 7 <picture><img alt="Código" src="https://img.shields.io/badge/C%C3%B3digo-%E2%9C%94-success"></picture> <picture><img alt="Documentación" src="https://img.shields.io/badge/Documentaci%C3%B3n-%E2%9C%94-success"></picture>
+
 ## Software utilizado
 
 + Debian 11 (bulseye), versión 5.10.0-21-amd64.
@@ -44,3 +45,14 @@ curl \
 -v \
 localhost:8080/ejecutar-tarea-remota
 ```
+
+## Ejecutar petición de servicio utilizando el cliente
+
+1. Descargar y ejecutar el cliente, en otra terminal:
+
+    ```sh
+    curl -LOs "https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej7/cliente/target/tp1-ej7-cliente-1.0-SNAPSHOT-jar-with-dependencies.jar" && \
+    java -jar tp1-ej7-cliente-1.0-SNAPSHOT-jar-with-dependencies.jar
+    ```
+
+2. Ejecutar alguna petición, teniendo en cuenta que los comandos que acepta son "suma" y "calculo-pi". El programa irá guiando luego al usuario para que ingrese los parámetros.
