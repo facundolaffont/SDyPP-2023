@@ -1,0 +1,5 @@
+!.gitignore
+docs
+target/*
+!target/tp1-ej7-cliente-1.0-SNAPSHOT-jar-with-dependencies.jar
+.vscode
