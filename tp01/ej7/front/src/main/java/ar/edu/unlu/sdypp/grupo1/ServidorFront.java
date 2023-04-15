@@ -111,7 +111,7 @@ public class ServidorFront {
         
         // Se crea el container (pero todavía no se corre).
         CreateContainerResponse container = dockerClient
-            .createContainerCmd("tp1-ej7-" + tarea)
+            .createContainerCmd("facundol/tp1-ej7-" + tarea)
             .withName(tarea)
             .withHostConfig(hostConfig)
             .exec();
