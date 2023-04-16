@@ -26,18 +26,11 @@ public class Cliente {
     public static void main(String[] args) {
         // Si no se pasó, como argumento, la URL del endpoint,
         // notifica al cliente y termina el programa.
-        /* DEBUG
-        if(args.length != 1) {
+        if(args.length != 1)
             System.out.println(
-                "SINOPSIS\n\t" +
-                    "X <url-endpoint>\n\n" +
-
-                "DESCRIPCIÓN\n\t" +
-                    "Obtiene del usuario la tarea a ejecutar, y envía la petición de\n\t" +
-                    "procesamiento a <url-endpoint>."
+                "Al ejecutar se debe pasar como parámetro el endpoint con puerto, sin el esquema (e.g. 'localhost:8080/ejecutar-tarea-remota')."
             );
-        } else new Cliente(args[0]); */
-        new Cliente("http://localhost:8080/ejecutar-tarea-remota"); // DEBUG
+        else new Cliente("http://" + args[0]);
     }
 
 
