@@ -52,7 +52,7 @@ localhost:8080/ejecutar-tarea-remota
 
     ```sh
     curl -LOs "https://github.com/facundolaffont/SDyPP-2023/raw/main/tp01/ej7/cliente/target/tp1-ej7-cliente-1.0-SNAPSHOT-jar-with-dependencies.jar" && \
-    java -jar tp1-ej7-cliente-1.0-SNAPSHOT-jar-with-dependencies.jar
+    java -jar tp1-ej7-cliente-1.0-SNAPSHOT-jar-with-dependencies.jar localhost:8080/ejecutar-tarea-remota
     ```
 
 2. Ejecutar alguna petición, teniendo en cuenta que los comandos que acepta son "suma" y "calculo-pi". El programa irá guiando luego al usuario para que ingrese los parámetros.
