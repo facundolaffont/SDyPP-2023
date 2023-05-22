@@ -1,0 +1,28 @@
+name: tp2-ej1-maestro
+services:
+
+  maestro:
+    build: maestro/.
+    image: facundol/tp2-ej1-maestro:latest
+    ports:
+      - 8080:8080/tcp
+    container_name: maestro
+    depends_on:
+      - rabbitmq
+      - calculo-pi
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - red-contenedores
+
+  rabbitmq:
+    image: rabbitmq:latest
+    ports:
+      - 5672:5672/tcp
+      - 15672:15672/tcp
+    container_name: rabbitmq
+    networks:
+      - red-contenedores
+
+networks:
+  red-contenedores:
