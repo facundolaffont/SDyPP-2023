@@ -22,7 +22,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
 import ar.edu.unlu.sdypp.grupo1.requests.InformRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -52,8 +51,8 @@ public class Maestro {
             httpServletRequest.getRemotePort()
         ));
 
-        // Agrega la IP del host a la lista de extremos, junto
-        // con el timestamp de la conexión.
+        // Registra la IP del host y la descripción de
+        // sus archivos, junto con el timestamp de la conexión.
         // TODO: valida si ya existe el host.
         peersList.add(
             new HostSession(
@@ -61,8 +60,6 @@ public class Maestro {
                 new Date()
             )
         );
-
-
 
         // Notifica a los maestros la información.
         JSONObject jsonNotificacion = (new JSONObject())
