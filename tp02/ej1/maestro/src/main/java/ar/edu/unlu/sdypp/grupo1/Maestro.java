@@ -10,6 +10,8 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
@@ -21,6 +23,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import jakarta.servlet.http.HttpServletRequest;
 
 @SpringBootApplication
@@ -36,6 +40,20 @@ public class Maestro {
         listaDeExtremos = new ArrayList<Host>();
         listaDeMaestros = new ArrayList<Host>();
         // TODO: añadir los otros maestros.
+
+        // TODO: conectarse con el servidor de RabbitMQ.
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        factory.setPort(5672); // Puerto predeterminado de RabbitMQ.
+        factory.setUsername("guest"); // RabbitMQ default username
+        factory.setPassword("guest"); // RabbitMQ default password
+
+        try (Connection connection = factory.newConnection()) {
+        } catch (IOException | TimeoutException e) {
+            gestionarError(e, "No se pudo realizar la conexión con el servidor RabbitMQ.");
+            System.exit(1);
+        }
+
     }
 
     // Utilizado por los extremos para anunciarse a la red,
