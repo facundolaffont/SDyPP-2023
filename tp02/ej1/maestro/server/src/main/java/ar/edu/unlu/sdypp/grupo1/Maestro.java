@@ -9,22 +9,21 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
-import java.util.concurrent.TimeoutException;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
+
+import ar.edu.unlu.sdypp.grupo1.requests.InformRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 @SpringBootApplication
@@ -37,42 +36,33 @@ public class Maestro {
     public Maestro() {
         // Inicializa las listas de maestros y extremos
         // y carga la lista de maestros con los otros maestros.
-        listaDeExtremos = new ArrayList<Host>();
-        listaDeMaestros = new ArrayList<Host>();
+        peersList = new ArrayList<HostSession>();
+        mastersList = new ArrayList<HostSession>();
         // TODO: añadir los otros maestros.
-
-        // TODO: conectarse con el servidor de RabbitMQ.
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
-        factory.setPort(5672); // Puerto predeterminado de RabbitMQ.
-        factory.setUsername("guest"); // RabbitMQ default username
-        factory.setPassword("guest"); // RabbitMQ default password
-
-        try (Connection connection = factory.newConnection()) {
-        } catch (IOException | TimeoutException e) {
-            gestionarError(e, "No se pudo realizar la conexión con el servidor RabbitMQ.");
-            System.exit(1);
-        }
-
     }
 
     // Utilizado por los extremos para anunciarse a la red,
-    // y que su IP sea replicada a los demás extremos.
-    @GetMapping(value="/anunciarse")
-    public String anunciarse() {
-        logger.info(String.format( // logger.debug
+    // y que su IP y lista de archivos sean replicados a
+    // los demás extremos.
+    @PostMapping(value="/inform")
+    public String inform(@RequestBody InformRequest informRequest) {
+        logger.debug(String.format(
             "Se anuncia el host <%s:%s>.",
             httpServletRequest.getRemoteHost(),
             httpServletRequest.getRemotePort()
         ));
 
-        // Agrega la IP del host a la lista de extremos.
+        // Agrega la IP del host a la lista de extremos, junto
+        // con el timestamp de la conexión.
         // TODO: valida si ya existe el host.
-        listaDeExtremos.add(
-            new Host(
-                httpServletRequest.getRemoteHost()
+        peersList.add(
+            new HostSession(
+                httpServletRequest.getRemoteHost(),
+                new Date()
             )
         );
+
+
 
         // Notifica a los maestros la información.
         JSONObject jsonNotificacion = (new JSONObject())
@@ -151,9 +141,10 @@ public class Maestro {
 
     /* Private */
     
-    private static final Logger logger = LogManager.getLogger(Maestro.class);
-    private ArrayList<Host> listaDeMaestros;
-    private ArrayList<Host> listaDeExtremos;
+    private static final Logger logger = LoggerFactory.getLogger(Maestro.class);
+    private List<HostSession> mastersList;
+    private List<HostSession> peersList;
+    private Hashtable<String,FileDescription> fileList;
     @Autowired private HttpServletRequest httpServletRequest;
 
     private JSONObject gestionarError(Exception e, String mensaje) {
@@ -227,7 +218,7 @@ public class Maestro {
     // Envía un mensaje a todos los maestros.
     private ArrayList<JSONObject> enviarMensajeAMaestros(String endpoint, JSONObject jsonNotificacion) {
         var listaMensajes = new ArrayList<JSONObject>();
-        for (Host host : listaDeMaestros) {
+        for (HostSession host : mastersList) {
             listaMensajes.add(
                 postParaJSON(
                     String.format(
@@ -246,7 +237,7 @@ public class Maestro {
     // Envía un mensaje a todos los extremos.
     private ArrayList<JSONObject> enviarMensajeAExtremos(String endpoint, JSONObject jsonNotificacion) {
         var listaMensajes = new ArrayList<JSONObject>();
-        for (Host host : listaDeExtremos) {
+        for (HostSession host : peersList) {
             listaMensajes.add(
                 postParaJSON(
                     String.format(
@@ -262,21 +253,43 @@ public class Maestro {
         return listaMensajes;
     }
 
-    private class Host {
-        
-        public Host(String ip) {
+    private class HostSession {
+
+        public HostSession(String ip, Date timestamp) {
             this.ip = ip;
+            this.timestamp = timestamp;
         }
 
         public String getIp() {
             return ip;
         }
 
+        public long getTimestamp() {
+            return timestamp.getTime();
+        }
+
 
         /* Private */
 
-        String ip;
+        private Date timestamp;
+        private String ip;
 
+    }
+
+    private class FileDescription {
+
+        public FileDescription(String name, Long sizeInBytes, String hash) {
+            this.name = name;
+            this.sizeInBytes = sizeInBytes;
+            this.hash = hash;
+        }
+
+
+        /* Private */
+
+        private String name;
+        private Long sizeInBytes;
+        private String hash;
     }
 
 }
