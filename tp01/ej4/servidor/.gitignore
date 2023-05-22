@@ -1,0 +1,2 @@
+target/*
+!target/ej4-servidor-1.jar

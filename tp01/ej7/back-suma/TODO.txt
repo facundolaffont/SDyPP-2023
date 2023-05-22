@@ -1,0 +1,21 @@
+Cómo compilar con Maven dentro de un contenedor: https://docs.docker.com/language/java/build-images/
+
+Cómo construir imágenes y levantar containers desde Java, usando una dependencia de Maven: https://github.com/docker-java/docker-java/blob/main/docs/getting_started.md
+
+Orden de sucesos:
+1. Se deben crear 4 imágenes: 1 para la API HTTP que recibe las órdenes de ejecución genéricas,
+y otras tres para las APIs HTTP que realizan las tareas genéricas.
+
+    Nombres de las imágenes:
+    + tp1-ej7-front.
+    + tp1-ej7-backPI.
+    + tp1-ej7-backVectores.
+    + tp1-ej7-backSuma.
+
+2. Se crea un contenedor con la imagen tp1-ej7-front.
+3. El cliente externo envía una petición en formato JSON.
+4. El servidor alojado en tp1-ej7-front decodifica la tarea, y en base al tipo
+de tarea, crea un contenedor con una de las 3 imágenes del back.
+5. El servidor del front le envía al back la petición, también en JSON.
+6. El back procesa y devuelve el resultado, en JSON.
+7. El front devuelve el resultado al cliente, en JSON.

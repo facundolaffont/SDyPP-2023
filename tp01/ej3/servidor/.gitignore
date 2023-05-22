@@ -1,0 +1,2 @@
+target/*
+!target/ej3-servidor-1.jar
