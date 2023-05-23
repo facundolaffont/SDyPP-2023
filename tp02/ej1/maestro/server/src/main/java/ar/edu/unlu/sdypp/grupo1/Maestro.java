@@ -10,8 +10,12 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -22,8 +26,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import ar.edu.unlu.sdypp.grupo1.requests.FileDescriptionRequest;
 import ar.edu.unlu.sdypp.grupo1.requests.InformRequest;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
+import lombok.Setter;
 
 @SpringBootApplication
 @RestController
@@ -34,10 +42,11 @@ public class Maestro {
 
     public Maestro() {
         // Inicializa las listas de maestros y extremos
-        // y carga la lista de maestros con los otros maestros.
-        peersList = new ArrayList<HostSession>();
-        mastersList = new ArrayList<HostSession>();
+        // y carga la lista de maestros con sus correspondientes IPs.
         // TODO: añadir los otros maestros.
+        peerSessionMap = new HashMap<String, PeerSession>();
+        fileDescriptionMap = new HashMap<String, List<FileDescription>>();
+        mastersList = new ArrayList<String>();
     }
 
     // Utilizado por los extremos para anunciarse a la red,
@@ -51,27 +60,87 @@ public class Maestro {
             httpServletRequest.getRemotePort()
         ));
 
-        // Registra la IP del host y la descripción de
-        // sus archivos, junto con el timestamp de la conexión.
-        // TODO: valida si ya existe el host.
-        peersList.add(
-            new HostSession(
-                httpServletRequest.getRemoteHost(),
-                new Date()
-            )
-        );
+        /** TODO (falta eliminar los archivos que dejen de existir)
+         * Si la IP del extremo ya está registrada (A), modificar
+         * la lista de artículos si hace falta (AA), y si
+         * se modificó (C), deja marcada una bandera (E) para enviar
+         * luego la notificación al resto de los maestros (f).
+         * 
+         * Si la IP del extremo no está registrada (G), crea el registro
+         * del extremo (GG), guarda la lista de artículos (D), y deja
+         * una bandera marcada (J) para envíar luego la notificación al
+         * resto de los maestros (f).
+         * 
+         * En cualquiera de los casos, al finalizar se debe actualizar
+         * el timestamp (B).
+         */
+        String mastersNotificationMessage = null;
 
-        // Notifica a los maestros la información.
-        JSONObject jsonNotificacion = (new JSONObject())
-            .put(
-                    "nuevos-extremos",
-                    (new JSONArray())
-                        .put(httpServletRequest.getRemoteHost())
+        // (A)
+        PeerSession queriedPeerRegister = peerSessionMap.get(httpServletRequest.getRemoteHost());
+        if (queriedPeerRegister != null) {
+
+            // (C)
+            if(queriedPeerRegister.updateFileDescriptionList()) // (AA)
+                mastersNotificationMessage = "updatePeer"; // (E)
+            
+            // (B)
+            queriedPeerRegister.setTimestamp(new Date());
+
+        // (G)
+        } else {
+
+            // (GG)
+            PeerSession newPeer = new PeerSession(
+                httpServletRequest.getRemoteHost(),
+                informRequest.getFiles()
+            );
+            peerSessionMap.put(
+                httpServletRequest.getRemoteHost(),
+                newPeer
+            );
+            
+            // (D)
+            newPeer.updateFileDescriptionList();
+
+            // (J)
+            mastersNotificationMessage = "newPeer";
+
+            // (B)
+            newPeer.setTimestamp(new Date());
+
+        }
+
+        // (f)
+        JSONObject jsonNotificacion = new JSONObject();
+        var listaRespuestas = new ArrayList<JSONObject>();
+        switch(mastersNotificationMessage) {
+            case "newPeer":
+                jsonNotificacion.put(
+                    mastersNotificationMessage,
+                    httpServletRequest.getRemoteHost()
                 );
-        ArrayList<JSONObject> listaRespuestas = enviarMensajeAMaestros("actualizar", jsonNotificacion);
+                jsonNotification.put(
+                    "files",
+                    // TODO: arreglo con los archivos.
+                );
+                listaRespuestas = enviarMensajeAMaestros("update", jsonNotificacion);
+            break;
+            case "updatePeer":
+                jsonNotificacion.put(
+                    mastersNotificationMessage,
+                    httpServletRequest.getRemoteHost()
+                );
+                jsonNotification.put(
+                    "files",
+                    // TODO: arreglo con los archivos.
+                );
+                listaRespuestas = enviarMensajeAMaestros("update", jsonNotificacion);
+            break;
+            default: break;
+        }
 
         // TODO: construir la respuesta única con los mensajes de la lista de respuestas.
-
         return (new JSONObject())
             .put("Código de respuesta", 200)
             .toString();
@@ -139,11 +208,9 @@ public class Maestro {
     /* Private */
     
     private static final Logger logger = LoggerFactory.getLogger(Maestro.class);
-    private List<HostSession> mastersList;
-    private List<HostSession> peersList;
-    private Dictionary<String, PeerSession> peerSessionDictionary;
-    private Dictionary<String, FileDescriptionDictionaryItem> fileDescriptionDictionary;
-    private Hashtable<String,FileDescription> fileList;
+    private List<String> mastersList;
+    private Map<String /* IP */, PeerSession> peerSessionMap;
+    private Map<String /* Nombre del archivo */, List<FileDescription>> fileDescriptionMap;
     @Autowired private HttpServletRequest httpServletRequest;
 
     private JSONObject gestionarError(Exception e, String mensaje) {
@@ -236,7 +303,7 @@ public class Maestro {
     // Envía un mensaje a todos los extremos.
     private ArrayList<JSONObject> enviarMensajeAExtremos(String endpoint, JSONObject jsonNotificacion) {
         var listaMensajes = new ArrayList<JSONObject>();
-        for (HostSession host : peersList) {
+        for (PeerSession host : peersList) {
             listaMensajes.add(
                 postParaJSON(
                     String.format(
@@ -252,43 +319,114 @@ public class Maestro {
         return listaMensajes;
     }
 
-    private class HostSession {
+    private class PeerSession {
 
-        public HostSession(String ip, Date timestamp, List<FileDescription> fileDescriptionList) {
-            this.ip = ip;
-            this.timestamp = timestamp;
-            // Por cada archivo en la lista, agregar 
-        }
-
-        public String getIp() {
-            return ip;
+        public PeerSession(
+            String peerIp,
+            List<FileDescriptionRequest> receivedFileDescriptionList
+        ) {
+            this.peerIp = peerIp;
+            fileDescriptionList = receivedFileDescriptionList;
         }
 
         public long getTimestamp() {
             return timestamp.getTime();
         }
 
+        // Recorre la lista de descripción de archivos y actualiza los
+        // registros que sean necesarios. Devuelve true si hubo alguna
+        // modificación.
+        public boolean updateFileDescriptionList() {
+            boolean fileDescriptionListModified = false;
+            for(FileDescriptionRequest receivedFileDescription: fileDescriptionList) { // Por cada descripción de archivo que haya anunciado el extremo.
 
-        /* Private */
+                /**
+                 * Si no hay descripción de archivo registrado con el nombre de
+                 * la descripción actual (A), añade una lista vacía en la clave
+                 * correspondiente al nombre en el mapa de archivos (B), para
+                 * guardar la descripción actual posteriormente.
+                 */ 
+                boolean addFile = false;
+                List<FileDescription> storedFileDescriptionList = fileDescriptionMap.get(receivedFileDescription.getName());
+                if (storedFileDescriptionList == null) { // (A)
+                    storedFileDescriptionList = new ArrayList<FileDescription>(); // (B)
+                    addFile = true;
 
-        private Date timestamp;
-        private String ip;
-        private List<FileDescription> fileDescriptionList;
+                    /**
+                     * Si ya existen registros de archivos con el mismo nombre
+                     * que el de la descripción de archivo actual (A), verifica
+                     * si ya está registrado el hash del archivo en la lista de
+                     * descripciones guardada en el mapa de archivos (B). Sólo
+                     * en caso de que no exista el hash (C), se modifica una
+                     * bandera (D) para que luego se agregue una entrada nueva a
+                     * la lista de descripciones (H).
+                     * 
+                     * Si el hash ya existe (E) y la IP no está registrada en la
+                     * lista de IPs (F), agrega la IP a la lista (G).
+                     */
+                } else { // (A)
+                    
+                    // (B)
+                    boolean fileHashExists = false;
+                    for (FileDescription storedFileDescription: storedFileDescriptionList) {
+                        if (storedFileDescription.getHash() == receivedFileDescription.getHash()) { // (E)
+                            fileHashExists = true;
 
-    }
+                            if (!storedFileDescription.getIpList().contains(peerIp)) { // (F)
+                                storedFileDescription.getIpList().add(peerIp); // (G)
+                                fileDescriptionListModified = true;
+                            }
 
-    private class FileDescriptionDictionaryItem {
+                            break;
+                        }
+                    }
 
-        public FileDescription(Long sizeInBytes, String hash) {
-            this.sizeInBytes = sizeInBytes;
-            this.hash = hash;
+                    if (!fileHashExists) { // (C)
+                        addFile = true; // (D)
+                        fileDescriptionListModified = true;
+                    }
+
+                }
+
+                // (H)
+                if(addFile)
+                    storedFileDescriptionList.add(new FileDescription(
+                        receivedFileDescription.getHash(),
+                        receivedFileDescription.getSizeInBytes(),
+                        peerIp
+                    ));
+            }
+
+            return fileDescriptionListModified;
         }
 
 
         /* Private */
 
-        private Long sizeInBytes;
-        private String hash;
+        private String peerIp;
+        @Setter private Date timestamp;
+        private List<FileDescriptionRequest> fileDescriptionList;
+
+    }
+
+    private class FileDescription {
+        
+        public FileDescription(
+            String hash,
+            Long sizeInBytes,
+            String ip
+        ) {
+            this.hash = hash;
+            this.sizeInBytes = sizeInBytes;
+            this.ipList.add(ip);
+        }
+
+
+        /* Private */
+
+        @Getter private String hash;
+        @Getter private Long sizeInBytes;
+        @Getter private List<String> ipList;
     }
 
 }

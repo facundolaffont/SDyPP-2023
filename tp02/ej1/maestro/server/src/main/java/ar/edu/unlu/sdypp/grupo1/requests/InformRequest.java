@@ -5,5 +5,5 @@ import lombok.Data;
 
 @Data
 public class InformRequest {
-    private List<FileRequest> files;
+    private List<FileDescriptionRequest> files;
 }
