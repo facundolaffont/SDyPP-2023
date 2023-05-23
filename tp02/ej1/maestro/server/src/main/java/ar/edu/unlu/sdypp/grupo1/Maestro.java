@@ -141,6 +141,8 @@ public class Maestro {
     private static final Logger logger = LoggerFactory.getLogger(Maestro.class);
     private List<HostSession> mastersList;
     private List<HostSession> peersList;
+    private Dictionary<String, PeerSession> peerSessionDictionary;
+    private Dictionary<String, FileDescriptionDictionaryItem> fileDescriptionDictionary;
     private Hashtable<String,FileDescription> fileList;
     @Autowired private HttpServletRequest httpServletRequest;
 
@@ -252,9 +254,10 @@ public class Maestro {
 
     private class HostSession {
 
-        public HostSession(String ip, Date timestamp) {
+        public HostSession(String ip, Date timestamp, List<FileDescription> fileDescriptionList) {
             this.ip = ip;
             this.timestamp = timestamp;
+            // Por cada archivo en la lista, agregar 
         }
 
         public String getIp() {
@@ -270,13 +273,13 @@ public class Maestro {
 
         private Date timestamp;
         private String ip;
+        private List<FileDescription> fileDescriptionList;
 
     }
 
-    private class FileDescription {
+    private class FileDescriptionDictionaryItem {
 
-        public FileDescription(String name, Long sizeInBytes, String hash) {
-            this.name = name;
+        public FileDescription(Long sizeInBytes, String hash) {
             this.sizeInBytes = sizeInBytes;
             this.hash = hash;
         }
@@ -284,7 +287,6 @@ public class Maestro {
 
         /* Private */
 
-        private String name;
         private Long sizeInBytes;
         private String hash;
     }
