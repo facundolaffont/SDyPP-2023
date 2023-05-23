@@ -1,0 +1,3 @@
+# Directorio "target", excepto el JAR compilado.
+/target/**
+!/target/*.jar
