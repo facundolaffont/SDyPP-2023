@@ -20,14 +20,6 @@
 
   <dependencies>
 
-    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
-    <!-- Permite crear fácilmente una API HTTP. -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-      <version>3.0.5</version>
-    </dependency>
-
     <!-- https://mvnrepository.com/artifact/org.json/json -->
     <!-- Permite manipular JSONs. -->
     <dependency>
@@ -44,7 +36,8 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Exclude Logback -->
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
+    <!-- Permite crear fácilmente una API HTTP. -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>

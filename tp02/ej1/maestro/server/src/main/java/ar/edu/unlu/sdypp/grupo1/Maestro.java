@@ -10,12 +10,9 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -26,7 +23,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
 import ar.edu.unlu.sdypp.grupo1.requests.FileDescriptionRequest;
 import ar.edu.unlu.sdypp.grupo1.requests.InformRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,16 +39,25 @@ public class Maestro {
     public Maestro() {
         // Inicializa las listas de maestros y extremos
         // y carga la lista de maestros con sus correspondientes IPs.
-        // TODO: añadir los otros maestros.
+        // TODO: añadir los datos de los maestros.
         peerSessionMap = new HashMap<String, PeerSession>();
         fileDescriptionMap = new HashMap<String, List<FileDescription>>();
         mastersList = new ArrayList<String>();
     }
 
-    // Utilizado por los extremos para anunciarse a la red,
-    // y que su IP y lista de archivos sean replicados a
-    // los demás extremos.
-    @PostMapping(value="/inform")
+    /**
+     * Utilizado por los extremos para registrarse en la red,
+     * para dar prueba de vida y para anunciar cambios en su
+     * lista de archivos.
+     * 
+     * @param informRequest - contiene la lista de archivos del extremo
+     * que se conecta.
+     * @return - Un objeto JSON con el resultado de las operaciones.
+     */
+    @PostMapping(
+        value="/inform",
+        headers="Content-Type=application/json"
+    )
     public String inform(@RequestBody InformRequest informRequest) {
         logger.debug(String.format(
             "Se anuncia el host <%s:%s>.",
@@ -64,17 +69,21 @@ public class Maestro {
          * Si la IP del extremo ya está registrada (A), modificar
          * la lista de artículos si hace falta (AA), y si
          * se modificó (C), deja marcada una bandera (E) para enviar
-         * luego la notificación al resto de los maestros (f).
+         * luego la notificación al resto de los maestros.
          * 
          * Si la IP del extremo no está registrada (G), crea el registro
          * del extremo (GG), guarda la lista de artículos (D), y deja
          * una bandera marcada (J) para envíar luego la notificación al
-         * resto de los maestros (f).
+         * resto de los maestros.
          * 
          * En cualquiera de los casos, al finalizar se debe actualizar
-         * el timestamp (B).
+         * el timestamp (B), y enviar a todos los maestros el nuevo
+         * timestamp y la IP del extremo (h), y, si se modificó la lista
+         * de artículos o si el extremo no estaba registrado, también
+         * debe enviar la lista de artículos (i).
+         * 
          */
-        String mastersNotificationMessage = null;
+        boolean newPeerOrUpdatedFileList = false;
 
         // (A)
         PeerSession queriedPeerRegister = peerSessionMap.get(httpServletRequest.getRemoteHost());
@@ -82,7 +91,7 @@ public class Maestro {
 
             // (C)
             if(queriedPeerRegister.updateFileDescriptionList()) // (AA)
-                mastersNotificationMessage = "updatePeer"; // (E)
+                newPeerOrUpdatedFileList = true; // (E)
             
             // (B)
             queriedPeerRegister.setTimestamp(new Date());
@@ -104,46 +113,56 @@ public class Maestro {
             newPeer.updateFileDescriptionList();
 
             // (J)
-            mastersNotificationMessage = "newPeer";
+            newPeerOrUpdatedFileList = true;
 
             // (B)
             newPeer.setTimestamp(new Date());
 
         }
 
-        // (f)
-        JSONObject jsonNotificacion = new JSONObject();
-        var listaRespuestas = new ArrayList<JSONObject>();
-        switch(mastersNotificationMessage) {
-            case "newPeer":
-                jsonNotificacion.put(
-                    mastersNotificationMessage,
-                    httpServletRequest.getRemoteHost()
-                );
-                jsonNotification.put(
-                    "files",
-                    // TODO: arreglo con los archivos.
-                );
-                listaRespuestas = enviarMensajeAMaestros("update", jsonNotificacion);
-            break;
-            case "updatePeer":
-                jsonNotificacion.put(
-                    mastersNotificationMessage,
-                    httpServletRequest.getRemoteHost()
-                );
-                jsonNotification.put(
-                    "files",
-                    // TODO: arreglo con los archivos.
-                );
-                listaRespuestas = enviarMensajeAMaestros("update", jsonNotificacion);
-            break;
-            default: break;
+        // (h) -->
+        
+        // Agrega el IP del extremo y su nuevo timestamp.
+        JSONObject jsonNotification = (new JSONObject());
+        // .put(
+        //     "peer",
+        //     httpServletRequest.getRemoteHost()
+        // ).put(
+        //     "timestamp",
+        //     // TIMESTAMP
+        // )
+
+        ArrayList<JSONObject> listaRespuestas = null;
+        if (newPeerOrUpdatedFileList) {
+
+            // Agrega la lista de archivos.
+            var filesArray = new JSONArray();
+            for (FileDescriptionRequest fileDescriptionRequest: informRequest.getFiles()) {
+                var tempJsonObject = (new JSONObject())
+                    .put("name", fileDescriptionRequest.getName())
+                    .put("sizeInBytes", fileDescriptionRequest.getSizeInBytes())
+                    .put("hash", fileDescriptionRequest.getHash());
+                filesArray.put(tempJsonObject);
+            }
+            jsonNotification.put(
+                "files",
+                filesArray
+            );
+
+            // Envía el mensaje a todos los maestros.
+            listaRespuestas = enviarMensajeAMaestros("update", jsonNotification);
+
         }
 
-        // TODO: construir la respuesta única con los mensajes de la lista de respuestas.
-        return (new JSONObject())
-            .put("Código de respuesta", 200)
-            .toString();
+        // Construir la respuesta única con los mensajes de la lista de respuestas.
+        if (listaRespuestas ==  null)
+            return (new JSONObject())
+                .put("Respuesta", "200 (OK)")
+                .toString();
+        else
+            return (new JSONObject())
+                .put("Respuesta", listaRespuestas)
+                .toString();
     }
 
     // Endpoint utilizado por los otros maestros para enviar
@@ -158,51 +177,51 @@ public class Maestro {
 
     // Endpoint utilizado por los extremos para pedir que se busquen ciertos
     // archivos.
-    @PostMapping(
-        value="/buscar-archivos",
-        headers="Content-Type=application/json"
-    )
-    public String buscarArchivos(@RequestBody String json) {
+    // @PostMapping(
+    //     value="/buscar-archivos",
+    //     headers="Content-Type=application/json"
+    // )
+    // public String buscarArchivos(@RequestBody String json) {
 
-        // Envía las peticiones de búsqueda a todos los extremos y obtiene las respuestas.
-        JSONObject jsonNotificacion = (new JSONObject())
-            .put(
-                "buscar-archivos",
-                json
-            );
-        ArrayList<JSONObject> respuestas = enviarMensajeAExtremos("buscar-archivos", jsonNotificacion);
+    //     // Envía las peticiones de búsqueda a todos los extremos y obtiene las respuestas.
+    //     JSONObject jsonNotificacion = (new JSONObject())
+    //         .put(
+    //             "buscar-archivos",
+    //             json
+    //         );
+    //     ArrayList<JSONObject> respuestas = enviarMensajeAExtremos("buscar-archivos", jsonNotificacion);
 
-        // Construye un diccionario, cuya clave es el hash de cada archivo, y que contendrá, como
-        // valor, el objeto JSON que representa al archivo encontrado en un nodo.
-        var diccionarioArchivos = new Hashtable<String, JSONObject>();
-        for (JSONObject respuesta: respuestas) {
-            JSONArray listaDeArchivos = (JSONArray) respuesta.get("archivos-solicitados");
-            for (Object registroArchivoEncontrado: listaDeArchivos) {
-                if (!diccionarioArchivos.containsKey(
-                    ((JSONObject) registroArchivoEncontrado).get("hash")
-                )) {
-                    ((JSONObject) registroArchivoEncontrado).remove("hash");
-                    diccionarioArchivos.put(
-                        ((JSONObject) registroArchivoEncontrado).get("hash").toString(),
-                        ((JSONObject) registroArchivoEncontrado)
-                    );
-                }
-            }
-        }
+    //     // Construye un diccionario, cuya clave es el hash de cada archivo, y que contendrá, como
+    //     // valor, el objeto JSON que representa al archivo encontrado en un nodo.
+    //     var diccionarioArchivos = new Hashtable<String, JSONObject>();
+    //     for (JSONObject respuesta: respuestas) {
+    //         JSONArray listaDeArchivos = (JSONArray) respuesta.get("archivos-solicitados");
+    //         for (Object registroArchivoEncontrado: listaDeArchivos) {
+    //             if (!diccionarioArchivos.containsKey(
+    //                 ((JSONObject) registroArchivoEncontrado).get("hash")
+    //             )) {
+    //                 ((JSONObject) registroArchivoEncontrado).remove("hash");
+    //                 diccionarioArchivos.put(
+    //                     ((JSONObject) registroArchivoEncontrado).get("hash").toString(),
+    //                     ((JSONObject) registroArchivoEncontrado)
+    //                 );
+    //             }
+    //         }
+    //     }
 
-        // Construye el JSON, utilizando el diccionario creado anteriormente, que se devolverá
-        // como respuesta al extremo que pidió la búsqueda de archivos.
-        var resultadoJSON = new JSONArray();
-        diccionarioArchivos.forEach(
-            (String clave, JSONObject valor) -> {
-                resultadoJSON.put(valor);
-            }
-        );
+    //     // Construye el JSON, utilizando el diccionario creado anteriormente, que se devolverá
+    //     // como respuesta al extremo que pidió la búsqueda de archivos.
+    //     var resultadoJSON = new JSONArray();
+    //     diccionarioArchivos.forEach(
+    //         (String clave, JSONObject valor) -> {
+    //             resultadoJSON.put(valor);
+    //         }
+    //     );
 
-        return (new JSONObject())
-            .put("resultado", resultadoJSON)
-            .toString();
-    }
+    //     return (new JSONObject())
+    //         .put("resultado", resultadoJSON)
+    //         .toString();
+    // }
 
 
     /* Private */
@@ -282,42 +301,52 @@ public class Maestro {
 	}
 
     // Envía un mensaje a todos los maestros.
-    private ArrayList<JSONObject> enviarMensajeAMaestros(String endpoint, JSONObject jsonNotificacion) {
+    private ArrayList<JSONObject> enviarMensajeAMaestros(
+        String endpoint,
+        JSONObject jsonNotificacion
+    ) {
         var listaMensajes = new ArrayList<JSONObject>();
-        for (HostSession host : mastersList) {
+        for (String masterIp : mastersList) {
             listaMensajes.add(
+
+                // Contruye el objeto JSON que se agregará
+                // a la lista de mensajes que devolverá esta
+                // función. Dicho objeto está conformado por
+                // la respuesta recibida por el maestro al cual
+                // se le envía el mensaje, junto con su IP.
                 postParaJSON(
                     String.format(
                         "https://%s:8080/%s",
-                        host.getIp(),
+                        masterIp,
                         endpoint
                     ),
                     jsonNotificacion
-                ).append("host", host.getIp())
+                ).append("host", masterIp)
+
             );
         }
 
         return listaMensajes;
     }
 
-    // Envía un mensaje a todos los extremos.
-    private ArrayList<JSONObject> enviarMensajeAExtremos(String endpoint, JSONObject jsonNotificacion) {
-        var listaMensajes = new ArrayList<JSONObject>();
-        for (PeerSession host : peersList) {
-            listaMensajes.add(
-                postParaJSON(
-                    String.format(
-                        "https://%s:8080/%s",
-                        host.getIp(),
-                        endpoint
-                    ),
-                    jsonNotificacion
-                ).append("host", host.getIp())
-            );
-        }
+    // // Envía un mensaje a todos los extremos.
+    // private ArrayList<JSONObject> enviarMensajeAExtremos(String endpoint, JSONObject jsonNotificacion) {
+    //     var listaMensajes = new ArrayList<JSONObject>();
+    //     for (PeerSession host : peersList) {
+    //         listaMensajes.add(
+    //             postParaJSON(
+    //                 String.format(
+    //                     "https://%s:8080/%s",
+    //                     host.getIp(),
+    //                     endpoint
+    //                 ),
+    //                 jsonNotificacion
+    //             ).append("host", host.getIp())
+    //         );
+    //     }
 
-        return listaMensajes;
-    }
+    //     return listaMensajes;
+    // }
 
     private class PeerSession {
 
