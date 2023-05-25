@@ -8,9 +8,11 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.json.JSONArray;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ar.edu.unlu.sdypp.grupo1.requests.FileDescriptionRequest;
 import ar.edu.unlu.sdypp.grupo1.requests.InformRequest;
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,11 +40,11 @@ public class Maestro {
     { SpringApplication.run(Maestro.class, args); }
 
     public Maestro() {
-        // Inicializa las listas de maestros y extremos
-        // y carga la lista de maestros con sus correspondientes IPs.
+        // Carga las variables de entorno.
+        dotenv = Dotenv.configure().load();
+        postgresUrl = dotenv.get("POSTGRES_URL");
+
         // TODO: añadir los datos de los maestros.
-        peerSessionMap = new HashMap<String, PeerSession>();
-        fileDescriptionMap = new HashMap<String, List<FileDescription>>();
         mastersList = new ArrayList<String>();
     }
 
@@ -83,6 +86,7 @@ public class Maestro {
          * debe enviar la lista de artículos (i).
          * 
          */
+        /*
         boolean newPeerOrUpdatedFileList = false;
 
         // (A)
@@ -163,6 +167,20 @@ public class Maestro {
             return (new JSONObject())
                 .put("Respuesta", listaRespuestas)
                 .toString();
+        */
+
+        // (A)
+        try {
+            postgresConnection = DriverManager.getConnection(postgresUrl);
+
+            executeQuery("
+                SELECT 
+            ");
+
+            postgresConnection.close();
+        } catch (SQLException e) {
+
+        }
     }
 
     // Endpoint utilizado por los otros maestros para enviar
@@ -230,6 +248,9 @@ public class Maestro {
     private List<String> mastersList;
     private Map<String /* IP */, PeerSession> peerSessionMap;
     private Map<String /* Nombre del archivo */, List<FileDescription>> fileDescriptionMap;
+    final Dotenv dotenv;
+    Connection postgresConnection;
+    String postgresUrl;
     @Autowired private HttpServletRequest httpServletRequest;
 
     private JSONObject gestionarError(Exception e, String mensaje) {
@@ -242,7 +263,22 @@ public class Maestro {
             mensaje
         );
     }
-    
+
+    // Ejecuta una consulta en la tabla.
+    public ResultSet executeQuery(String query)
+        throws SQLException, NotValidAttributeException
+    {
+        logger.debug(String.format(
+            "executeQuery(%s)", query
+        ));
+
+        Statement statement = postgresConnection.createStatement();
+        ResultSet resultSet = statement.executeQuery(query);
+        logger.info("Consulta ejecutada.");
+
+        return resultSet;
+    }
+
     /**
 	 * Envía un JSON en un POST al endpoint {@code url}, y en base a la
      * respuesta obtenida (que debe ser un JSON), se retorna tal cual, o

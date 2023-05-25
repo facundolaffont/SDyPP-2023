@@ -16,9 +16,13 @@ services:
 
   bd-postgres:
     image: postgres:13.11-bullseye
+    restart: always
     ports:
       - 5432:5432/tcp
     container_name: bd-postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     env_file:
       - postgres-variables.env
     networks:
@@ -26,3 +30,5 @@ services:
 
 networks:
   red-contenedores:
+volumes:
+  postgres-data:
