@@ -39,14 +39,15 @@ public class Maestro {
 
     }
 
+    // TODO: Validar que el objeto JSON tenga datos.
     /**
      * Utilizado por los extremos para registrarse en la red,
      * para dar prueba de vida y para anunciar cambios en su
      * lista de archivos.
      * 
-     * @param informRequest - contiene la lista de archivos del extremo
+     * @param informRequest - Contiene la lista de archivos del extremo
      * que se conecta.
-     * @return - Un objeto JSON con el resultado de las operaciones.
+     * @return Un objeto JSON con el resultado de las operaciones.
      */
     @PostMapping(
         value="/inform",
@@ -69,7 +70,7 @@ public class Maestro {
          */
         var returnedJson = (new JSONObject()
             .put("Respuesta","200 (OK)"))
-            .put("Descripción","Sin cambios.");
+            .put("Descripción","Sin cambios. Fecha y hora de acceso actualizadas.");
         try {
             Class.forName("org.postgresql.Driver");
             
@@ -98,7 +99,7 @@ public class Maestro {
                 ))
                     returnedJson = (new JSONObject())
                         .put("Resultado","200 (OK)")
-                        .put("Descripción","Se modificó la lista de archivos del extremo.");
+                        .put("Descripción","Archivos modificados.");
 
 
             // (BA)
@@ -114,7 +115,7 @@ public class Maestro {
                 returnedJson = (new JSONObject())
                     .put("Resultado","200 (OK)")
                     .put("Descripción","Extremo y archivos registrados.");
-                    
+
             }
 
             postgresConnection.close();
@@ -204,10 +205,14 @@ public class Maestro {
         logger.debug(mensaje);
 
         // Devuelve el mensaje para el usuario.
-        return new JSONObject().put(
-            "Error",
-            mensaje
-        );
+        return (new JSONObject())
+            .put(
+                "Respuesta",
+                "500 (Error interno del servidor)"
+            ).put(
+                "Descripción",
+                mensaje
+            );
 
     }
 
@@ -378,7 +383,8 @@ public class Maestro {
                 executeStatement(insertStatement, postgresConnection);
             }
 
-            // Si hubo modificaciones, marca la correspondiente bandera.
+            // Si hubo modificaciones en la lista de archivos, marca la
+            // correspondiente bandera.
             if (
                 !fileDescriptionsToRemove.isEmpty()
                 || !fileDescriptionsToInsert.isEmpty()
@@ -387,9 +393,16 @@ public class Maestro {
 
         }
         
-        // Si hubo modificaciones, guarda los cambios en la BD.
-        if (updated)
-            postgresConnection.commit();
+        // Registra el timestamp y guarda los cambios en la BD.
+        String updateStatement = String.format(
+            "UPDATE active_peers " +
+            "SET lastConnectionTimestamp = %d " +
+            "WHERE peerIp = '%s'",
+            (new Date()).getTime(),
+            peerIp
+        );
+        executeStatement(updateStatement, postgresConnection);
+        postgresConnection.commit();
 
         // Deja la conexión en el estado que estaba.
         postgresConnection.setAutoCommit(true);
