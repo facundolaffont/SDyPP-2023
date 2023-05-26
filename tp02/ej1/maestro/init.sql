@@ -19,4 +19,5 @@ CREATE TABLE files (
     CONSTRAINT fk_files_active_peers
         FOREIGN KEY (peerIp)
         REFERENCES active_peers(peerIp)
+        ON DELETE CASCADE
 );

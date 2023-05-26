@@ -8,6 +8,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,24 @@ public class Maestro {
         postgresUrl = dotenv.get("POSTGRES_URL");
         postgresUser = dotenv.get("POSTGRES_USER");
         postgresPassword = dotenv.get("POSTGRES_PASSWORD");
+
+        // Configura la frecuencia que tendrá la revisión de los
+        // extremos que no actualizaron sus conexiones (2 minutos).
+        var timer = new Timer();
+        var task = new TimerTask() {
+
+            @Override
+            public void run() {
+                try { cleanPeers(); }
+                catch (SQLException e) {
+                    gestionarError(e, "Error con el servidor SQL.");
+                } catch (ClassNotFoundException e) {
+                    gestionarError(e, "Error con el driver JDBC.");
+                }
+            }
+
+        };
+        timer.scheduleAtFixedRate(task, 120000, 120000);
 
     }
 
@@ -135,57 +155,63 @@ public class Maestro {
     //     value="/update",
     //     headers="Content-Type=application/json"
     // )
-    // public String actualizar(@RequestBody String json) {
-    //     // ...
-    // }
+    // public String update(@RequestBody String json) {}
 
     // Endpoint utilizado por los extremos para pedir que se busquen ciertos
     // archivos.
-    // @PostMapping(
-    //     value="/buscar-archivos",
-    //     headers="Content-Type=application/json"
+    // @GetMapping(
+    //     value="/query"
     // )
-    // public String buscarArchivos(@RequestBody String json) {
+    // public String query() {}
 
-    //     // Envía las peticiones de búsqueda a todos los extremos y obtiene las respuestas.
-    //     JSONObject jsonNotificacion = (new JSONObject())
-    //         .put(
-    //             "buscar-archivos",
-    //             json
-    //         );
-    //     ArrayList<JSONObject> respuestas = enviarMensajeAExtremos("buscar-archivos", jsonNotificacion);
+    // Endpoint utilizado por los extremos para anunciar que se desconectan.
+    @PostMapping(
+        value="/exit"
+    )
+    public String exit()
+        throws ClassNotFoundException, SQLException
+    {
 
-    //     // Construye un diccionario, cuya clave es el hash de cada archivo, y que contendrá, como
-    //     // valor, el objeto JSON que representa al archivo encontrado en un nodo.
-    //     var diccionarioArchivos = new Hashtable<String, JSONObject>();
-    //     for (JSONObject respuesta: respuestas) {
-    //         JSONArray listaDeArchivos = (JSONArray) respuesta.get("archivos-solicitados");
-    //         for (Object registroArchivoEncontrado: listaDeArchivos) {
-    //             if (!diccionarioArchivos.containsKey(
-    //                 ((JSONObject) registroArchivoEncontrado).get("hash")
-    //             )) {
-    //                 ((JSONObject) registroArchivoEncontrado).remove("hash");
-    //                 diccionarioArchivos.put(
-    //                     ((JSONObject) registroArchivoEncontrado).get("hash").toString(),
-    //                     ((JSONObject) registroArchivoEncontrado)
-    //                 );
-    //             }
-    //         }
-    //     }
+        logger.debug("Se ejecuta el método exit.");
 
-    //     // Construye el JSON, utilizando el diccionario creado anteriormente, que se devolverá
-    //     // como respuesta al extremo que pidió la búsqueda de archivos.
-    //     var resultadoJSON = new JSONArray();
-    //     diccionarioArchivos.forEach(
-    //         (String clave, JSONObject valor) -> {
-    //             resultadoJSON.put(valor);
-    //         }
-    //     );
+        // Establece el driver para JDBC y se conecta al servidor
+        // de la BD.
+        Class.forName("org.postgresql.Driver");
+        postgresConnection = DriverManager.getConnection(
+            postgresUrl,
+            postgresUser,
+            postgresPassword
+        );
 
-    //     return (new JSONObject())
-    //         .put("resultado", resultadoJSON)
-    //         .toString();
-    // }
+        // Indica que no se guardarán los datos en la BD automáticamente,
+        // sino que se registrarán cuando se lo indique mediante código.
+        postgresConnection.setAutoCommit(false);
+
+        // Elimina los registros del extremo.
+        String deleteStatement = String.format(
+            "DELETE " +
+            "FROM active_peers " +
+            "WHERE peerIp = '%s'",
+            httpServletRequest.getRemoteHost()
+        );
+        executeStatement(deleteStatement, postgresConnection);
+        logger.info(String.format(
+            "Se eliminaron los registros del extremo. [IP del extremo = %s]",
+            httpServletRequest.getRemoteHost()
+        ));
+
+        // Guarda los cambios en la BD, deja el autocommit como estaba,
+        // y cierra la conexión.
+        postgresConnection.commit();
+        postgresConnection.setAutoCommit(true);
+        postgresConnection.close();
+
+        return (new JSONObject())
+            .put("Respuesta","200 (OK)")
+            .put("Descripción","Se eliminaron los registros del extremo.")
+            .toString();
+        
+    }
 
 
     /* Private */
@@ -450,6 +476,71 @@ public class Maestro {
         // que estaba.
         postgresConnection.commit();
         postgresConnection.setAutoCommit(true);
+
+    }
+
+    /**
+     * Elimina de la BD los extremos cuya última conexión sucedió
+     * hace más de 2 minutos.
+     */
+    private void cleanPeers() 
+        throws SQLException, ClassNotFoundException
+    {
+
+        logger.debug("Se ejecuta el método cleanPeers.");
+
+        // Establece el driver para JDBC y se conecta al servidor
+        // de la BD.
+        Class.forName("org.postgresql.Driver");
+        postgresConnection = DriverManager.getConnection(
+            postgresUrl,
+            postgresUser,
+            postgresPassword
+        );
+
+        // Indica que no se guardarán los datos en la BD automáticamente,
+        // sino que se registrarán cuando se lo indique mediante código.
+        postgresConnection.setAutoCommit(false);
+
+        // Obtiene todos los registros de los extremos en la BD.
+        ResultSet resultSet = executeQuery(
+            "SELECT * FROM active_peers",
+            postgresConnection
+        );
+
+        if (resultSet.next()) {
+
+            // Si la última vez que se conectó el extremo del registro
+            // actual fue hace más de 2 minutos, elimina el registro
+            // del extremo y de sus archivos.
+            logger.debug(String.format(
+                "(new Date()).getTime() - resultSet.getLong(\"lastConnectionTimestamp\") > 120000 = %b " +
+                "[(new Date()).getTime() = %d] " +
+                "[resultSet.getLong(\"lastConnectionTimestamp\") = %d] " +
+                "[(new Date()).getTime() - resultSet.getLong(\"lastConnectionTimestamp\") = %d]",
+                (new Date()).getTime() - resultSet.getLong("lastConnectionTimestamp") > 120000,
+                (new Date()).getTime(),
+                resultSet.getLong("lastConnectionTimestamp"),
+                (new Date()).getTime() - resultSet.getLong("lastConnectionTimestamp")
+            ));
+            if (
+                (new Date()).getTime() - resultSet.getLong("lastConnectionTimestamp") > 120000
+            ) {
+                logger.info(String.format(
+                    "Se eliminarán los registros de un extremo. [IP de extremo = %s]",
+                    resultSet.getString("peerIp")
+                ));
+                resultSet.deleteRow();
+                logger.info("Registro eliminado.");
+            }
+
+        } 
+
+        // Guarda los cambios en la BD, deja el autocommit como estaba,
+        // y cierra la conexión.
+        postgresConnection.commit();
+        postgresConnection.setAutoCommit(true);
+        postgresConnection.close();
 
     }
 
