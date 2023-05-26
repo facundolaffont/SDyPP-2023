@@ -149,14 +149,6 @@ public class Maestro {
         return returnedJson.toString();
     }
 
-    // // Endpoint utilizado por los otros maestros para enviar
-    // // información de actualización.
-    // @PostMapping(
-    //     value="/update",
-    //     headers="Content-Type=application/json"
-    // )
-    // public String update(@RequestBody String json) {}
-
     // Endpoint utilizado por los extremos para pedir que se busquen ciertos
     // archivos.
     // @GetMapping(
