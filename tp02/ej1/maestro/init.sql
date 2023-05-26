@@ -6,8 +6,8 @@ CREATE DATABASE db;
 
 -- Almacena la lista de extremos.
 CREATE TABLE active_peers (
-    id SERIAL PRIMARY KEY,
-    peerIp VARCHAR(46) NOT NULL
+    peerIp VARCHAR(46) PRIMARY KEY,
+    lastConnectionTimestamp BIGINT NOT NULL
 );
 
 -- Almacena la lista de archivos.
@@ -17,6 +17,6 @@ CREATE TABLE files (
     sizeInBytes BIGINT NOT NULL,
     peerIp VARCHAR(46) NOT NULL,
     CONSTRAINT fk_files_active_peers
-        FOREIGN KEY (id)
-        REFERENCES active_peers(id)
+        FOREIGN KEY (peerIp)
+        REFERENCES active_peers(peerIp)
 );

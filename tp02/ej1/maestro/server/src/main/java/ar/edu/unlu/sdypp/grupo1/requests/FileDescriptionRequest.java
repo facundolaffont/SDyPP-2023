@@ -6,5 +6,4 @@ import lombok.Data;
 public class FileDescriptionRequest {
     private String name;
     private Long sizeInBytes;
-    private String hash;
 }

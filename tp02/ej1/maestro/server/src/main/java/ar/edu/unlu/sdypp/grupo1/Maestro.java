@@ -1,21 +1,13 @@
 package ar.edu.unlu.sdypp.grupo1;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +21,6 @@ import ar.edu.unlu.sdypp.grupo1.requests.FileDescriptionRequest;
 import ar.edu.unlu.sdypp.grupo1.requests.InformRequest;
 import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Getter;
-import lombok.Setter;
 
 @SpringBootApplication
 @RestController
@@ -40,12 +30,13 @@ public class Maestro {
     { SpringApplication.run(Maestro.class, args); }
 
     public Maestro() {
+
         // Carga las variables de entorno.
         dotenv = Dotenv.configure().load();
         postgresUrl = dotenv.get("POSTGRES_URL");
+        postgresUser = dotenv.get("POSTGRES_USER");
+        postgresPassword = dotenv.get("POSTGRES_PASSWORD");
 
-        // TODO: añadir los datos de los maestros.
-        mastersList = new ArrayList<String>();
     }
 
     /**
@@ -68,130 +59,84 @@ public class Maestro {
             httpServletRequest.getRemotePort()
         ));
 
-        /** TODO (falta eliminar los archivos que dejen de existir)
-         * Si la IP del extremo ya está registrada (A), modificar
-         * la lista de artículos si hace falta (AA), y si
-         * se modificó (C), deja marcada una bandera (E) para enviar
-         * luego la notificación al resto de los maestros.
+        /**
+         * Si la IP del extremo ya está registrada (AA), modificar
+         * la lista de artículos si hace falta, y almacena de forma
+         * obligatoria el timestamp (AB).
          * 
-         * Si la IP del extremo no está registrada (G), crea el registro
-         * del extremo (GG), guarda la lista de artículos (D), y deja
-         * una bandera marcada (J) para envíar luego la notificación al
-         * resto de los maestros.
-         * 
-         * En cualquiera de los casos, al finalizar se debe actualizar
-         * el timestamp (B), y enviar a todos los maestros el nuevo
-         * timestamp y la IP del extremo (h), y, si se modificó la lista
-         * de artículos o si el extremo no estaba registrado, también
-         * debe enviar la lista de artículos (i).
-         * 
+         * Si la IP del extremo no está registrada (BA), guarda el registro
+         * del extremo, la lista de artículos y el timestamp (BB).
          */
-        /*
-        boolean newPeerOrUpdatedFileList = false;
-
-        // (A)
-        PeerSession queriedPeerRegister = peerSessionMap.get(httpServletRequest.getRemoteHost());
-        if (queriedPeerRegister != null) {
-
-            // (C)
-            if(queriedPeerRegister.updateFileDescriptionList()) // (AA)
-                newPeerOrUpdatedFileList = true; // (E)
-            
-            // (B)
-            queriedPeerRegister.setTimestamp(new Date());
-
-        // (G)
-        } else {
-
-            // (GG)
-            PeerSession newPeer = new PeerSession(
-                httpServletRequest.getRemoteHost(),
-                informRequest.getFiles()
-            );
-            peerSessionMap.put(
-                httpServletRequest.getRemoteHost(),
-                newPeer
-            );
-            
-            // (D)
-            newPeer.updateFileDescriptionList();
-
-            // (J)
-            newPeerOrUpdatedFileList = true;
-
-            // (B)
-            newPeer.setTimestamp(new Date());
-
-        }
-
-        // (h) -->
-        
-        // Agrega el IP del extremo y su nuevo timestamp.
-        JSONObject jsonNotification = (new JSONObject());
-        // .put(
-        //     "peer",
-        //     httpServletRequest.getRemoteHost()
-        // ).put(
-        //     "timestamp",
-        //     // TIMESTAMP
-        // )
-
-        ArrayList<JSONObject> listaRespuestas = null;
-        if (newPeerOrUpdatedFileList) {
-
-            // Agrega la lista de archivos.
-            var filesArray = new JSONArray();
-            for (FileDescriptionRequest fileDescriptionRequest: informRequest.getFiles()) {
-                var tempJsonObject = (new JSONObject())
-                    .put("name", fileDescriptionRequest.getName())
-                    .put("sizeInBytes", fileDescriptionRequest.getSizeInBytes())
-                    .put("hash", fileDescriptionRequest.getHash());
-                filesArray.put(tempJsonObject);
-            }
-            jsonNotification.put(
-                "files",
-                filesArray
-            );
-
-            // Envía el mensaje a todos los maestros.
-            listaRespuestas = enviarMensajeAMaestros("update", jsonNotification);
-
-        }
-
-        // Construir la respuesta única con los mensajes de la lista de respuestas.
-        if (listaRespuestas ==  null)
-            return (new JSONObject())
-                .put("Respuesta", "200 (OK)")
-                .toString();
-        else
-            return (new JSONObject())
-                .put("Respuesta", listaRespuestas)
-                .toString();
-        */
-
-        // (A)
+        var returnedJson = (new JSONObject()
+            .put("Respuesta","200 (OK)"))
+            .put("Descripción","Sin cambios.");
         try {
-            postgresConnection = DriverManager.getConnection(postgresUrl);
+            Class.forName("org.postgresql.Driver");
+            
+            postgresConnection = DriverManager.getConnection(
+                postgresUrl,
+                postgresUser,
+                postgresPassword
+            );
 
-            executeQuery("
-                SELECT 
-            ");
+            ResultSet resultSet = executeQuery(
+                String.format(
+                    "SELECT * FROM active_peers WHERE peerIp = '%s'",
+                    httpServletRequest.getRemoteHost()
+                ),
+                postgresConnection
+            );
+
+            // (AA)
+            if (resultSet.next()) {
+                
+                // (AB)
+                if (updateFileList(
+                    httpServletRequest.getRemoteHost(),
+                    informRequest.getFiles(),
+                    postgresConnection
+                ))
+                    returnedJson = (new JSONObject())
+                        .put("Resultado","200 (OK)")
+                        .put("Descripción","Se modificó la lista de archivos del extremo.");
+
+
+            // (BA)
+            } else {
+
+                // (BB)
+                recordPeer(
+                    httpServletRequest.getRemoteHost(),
+                    informRequest.getFiles(),
+                    postgresConnection
+                );
+
+                returnedJson = (new JSONObject())
+                    .put("Resultado","200 (OK)")
+                    .put("Descripción","Extremo y archivos registrados.");
+                    
+            }
 
             postgresConnection.close();
+
         } catch (SQLException e) {
-
+            returnedJson = gestionarError(e, "Error con el servidor SQL.");
+        } catch (ClassNotFoundException e) {
+            returnedJson = gestionarError(e, "Error con el driver JDBC.");
         }
+
+        return returnedJson.toString();
     }
 
-    // Endpoint utilizado por los otros maestros para enviar
-    // información de actualización.
-    @PostMapping(
-        value="/actualizar",
-        headers="Content-Type=application/json"
-    )
-    public String actualizar(@RequestBody String json) {
-        return null;
-    }
+    // // Endpoint utilizado por los otros maestros para enviar
+    // // información de actualización.
+    // @PostMapping(
+    //     value="/update",
+    //     headers="Content-Type=application/json"
+    // )
+    // public String actualizar(@RequestBody String json) {
+    //     // ...
+    // }
 
     // Endpoint utilizado por los extremos para pedir que se busquen ciertos
     // archivos.
@@ -245,253 +190,254 @@ public class Maestro {
     /* Private */
     
     private static final Logger logger = LoggerFactory.getLogger(Maestro.class);
-    private List<String> mastersList;
-    private Map<String /* IP */, PeerSession> peerSessionMap;
-    private Map<String /* Nombre del archivo */, List<FileDescription>> fileDescriptionMap;
     final Dotenv dotenv;
     Connection postgresConnection;
     String postgresUrl;
+    String postgresUser;
+    String postgresPassword;
     @Autowired private HttpServletRequest httpServletRequest;
 
     private JSONObject gestionarError(Exception e, String mensaje) {
+
         // Muestra el mensaje en la consola del servidor.
         e.printStackTrace();
+        logger.debug(mensaje);
 
         // Devuelve el mensaje para el usuario.
         return new JSONObject().put(
             "Error",
             mensaje
         );
+
     }
 
-    // Ejecuta una consulta en la tabla.
-    public ResultSet executeQuery(String query)
-        throws SQLException, NotValidAttributeException
+    // Ejecuta una consulta en la tabla que luego puede utilizarse para modificar
+    // la BD.
+    // La conexión ya tiene que estar establecida.
+    public ResultSet executeQuery(String query, Connection postgresConnection)
+        throws SQLException
     {
         logger.debug(String.format(
             "executeQuery(%s)", query
         ));
 
-        Statement statement = postgresConnection.createStatement();
+        Statement statement = postgresConnection.createStatement(
+            ResultSet.TYPE_SCROLL_SENSITIVE,
+            ResultSet.CONCUR_UPDATABLE
+        );
         ResultSet resultSet = statement.executeQuery(query);
         logger.info("Consulta ejecutada.");
 
         return resultSet;
     }
 
-    /**
-	 * Envía un JSON en un POST al endpoint {@code url}, y en base a la
-     * respuesta obtenida (que debe ser un JSON), se retorna tal cual, o
-     * se retorna un JSON que contiene un error.
-	 * 
-	 * @param urlString - Endpoint de la API.
-     * @param json - JSON que se envía en el cuerpo de la petición.
-	 * @return Un JSON, cuyo primer campo será el resultado, o será "Error" si hubo un problema.
-	 */
-	private JSONObject postParaJSON(String urlString, JSONObject json) {
-        
-        // Verifica si la URL está mal formada. Si es así, devuelve un JSON de error, si lo hubo.
-        URL url;
-        try { url = new URL(urlString); }
-        catch (MalformedURLException e) { return gestionarError(e, "Error del servidor."); }
+    // Ejecuta una sentencia en la tabla.
+    // La conexión ya tiene que estar establecida.
+    public void executeStatement(String sqlStatement, Connection postgresConnection)
+        throws SQLException
+    {
+        logger.debug(String.format(
+            "Se ejecuta el método executeStatement. [statement = %s]",
+            sqlStatement
+        ));
 
-        // Establece la conexión, y devuelve un JSON de error, si lo hubo.
-        HttpURLConnection conexionHTTP;
-        try { conexionHTTP = (HttpURLConnection) url.openConnection(); }
-        catch (IOException e) { return gestionarError(e, "Error del servidor."); }
-
-        // Establece el método de envío, y envía un JSON de error, si lo hubo.
-        try { conexionHTTP.setRequestMethod("POST"); }
-        catch (ProtocolException e) { return gestionarError(e, "Error del servidor."); }
-        conexionHTTP.setRequestProperty("Content-Type", "application/json");
-
-        // Envía el post, y devuelve un JSON de error, si lo hubo.
-        conexionHTTP.setDoOutput(true);
-        OutputStreamWriter flujoSalida;
-        try {
-            flujoSalida = new OutputStreamWriter(conexionHTTP.getOutputStream());
-            flujoSalida.write(json.toString());
-            flujoSalida.flush();
-            flujoSalida.close();
-        }
-        catch (IOException e) { return gestionarError(e, "Error del servidor."); }
-
-        // Obtiene el código de respuesta, y devuelve un JSON de error, si lo hubo.
-        int codigoRespuesta = 0;
-        try { codigoRespuesta = conexionHTTP.getResponseCode(); }
-        catch (IOException e) { return gestionarError(e, "Error del servidor."); }
-        System.out.println("* Código de respuesta del servidor: " + codigoRespuesta);
-
-        // Lee la respuesta, y devuelve un JSON de error, si lo hubo.
-        StringBuilder respuesta = new StringBuilder();
-        try (BufferedReader bufferReader = new BufferedReader(
-            new InputStreamReader(conexionHTTP.getInputStream())
-        )) {
-            String lineaEntrante;
-            while ((lineaEntrante = bufferReader.readLine()) != null) { respuesta.append(lineaEntrante); }
-            bufferReader.close();
-        } catch (IOException e) { return gestionarError(e, "Error del servidor."); }
-
-        // Devuelve el JSON, ya sea con error, o con la respuesta del servidor.
-        return new JSONObject(respuesta.toString());
-	}
-
-    // Envía un mensaje a todos los maestros.
-    private ArrayList<JSONObject> enviarMensajeAMaestros(
-        String endpoint,
-        JSONObject jsonNotificacion
-    ) {
-        var listaMensajes = new ArrayList<JSONObject>();
-        for (String masterIp : mastersList) {
-            listaMensajes.add(
-
-                // Contruye el objeto JSON que se agregará
-                // a la lista de mensajes que devolverá esta
-                // función. Dicho objeto está conformado por
-                // la respuesta recibida por el maestro al cual
-                // se le envía el mensaje, junto con su IP.
-                postParaJSON(
-                    String.format(
-                        "https://%s:8080/%s",
-                        masterIp,
-                        endpoint
-                    ),
-                    jsonNotificacion
-                ).append("host", masterIp)
-
-            );
-        }
-
-        return listaMensajes;
+        Statement statement = postgresConnection.createStatement();
+        statement.executeUpdate(sqlStatement);
+        logger.info(String.format("Sentencia ejecutada. [%s]", sqlStatement));
     }
 
-    // // Envía un mensaje a todos los extremos.
-    // private ArrayList<JSONObject> enviarMensajeAExtremos(String endpoint, JSONObject jsonNotificacion) {
-    //     var listaMensajes = new ArrayList<JSONObject>();
-    //     for (PeerSession host : peersList) {
-    //         listaMensajes.add(
-    //             postParaJSON(
-    //                 String.format(
-    //                     "https://%s:8080/%s",
-    //                     host.getIp(),
-    //                     endpoint
-    //                 ),
-    //                 jsonNotificacion
-    //             ).append("host", host.getIp())
-    //         );
-    //     }
+    // Actualiza la lista de archivos que la base de datos tiene almacenada
+    // sobre el extremo, si hace falta. Devuelve 'true' si hubo modificación,
+    // o 'false' si no hubo modificación.
+    private boolean updateFileList(
+        String peerIp,
+        List<FileDescriptionRequest> fileList,
+        Connection postgresConnection
+    )
+        throws SQLException
+    {
 
-    //     return listaMensajes;
-    // }
+        // La bandera para indicar si se modificaron los datos en la BD
+        // o no.
+        boolean updated = false;
 
-    private class PeerSession {
+        // Indica que no se guardarán los datos en la BD automáticamente,
+        // sino que se registrarán cuando se lo indique mediante código.
+        postgresConnection.setAutoCommit(false);
+        
+        // Obtiene la lista de archivos almacenada en la BD, que
+        // corresponde al extremo pasado por parámetro.
+        ResultSet storedFilesResultSet = executeQuery(
+            String.format(
+                "SELECT * " +
+                "FROM files " +
+                "WHERE peerIp = '%s'",
+                peerIp
+            ),
+            postgresConnection
+        );
 
-        public PeerSession(
-            String peerIp,
-            List<FileDescriptionRequest> receivedFileDescriptionList
-        ) {
-            this.peerIp = peerIp;
-            fileDescriptionList = receivedFileDescriptionList;
-        }
+        /**
+         * Si no hay registros de archivos en la BD, significa que todos los
+         * archivos que se enviaron en el POST deben almacenarse en la BD.
+         */
+        if (!storedFilesResultSet.next()) {
 
-        public long getTimestamp() {
-            return timestamp.getTime();
-        }
+            // Marca la bandera que indica que hubo modificación en el listado
+            // de archivos del extremo.
+            updated = true;
 
-        // Recorre la lista de descripción de archivos y actualiza los
-        // registros que sean necesarios. Devuelve true si hubo alguna
-        // modificación.
-        public boolean updateFileDescriptionList() {
-            boolean fileDescriptionListModified = false;
-            for(FileDescriptionRequest receivedFileDescription: fileDescriptionList) { // Por cada descripción de archivo que haya anunciado el extremo.
-
-                /**
-                 * Si no hay descripción de archivo registrado con el nombre de
-                 * la descripción actual (A), añade una lista vacía en la clave
-                 * correspondiente al nombre en el mapa de archivos (B), para
-                 * guardar la descripción actual posteriormente.
-                 */ 
-                boolean addFile = false;
-                List<FileDescription> storedFileDescriptionList = fileDescriptionMap.get(receivedFileDescription.getName());
-                if (storedFileDescriptionList == null) { // (A)
-                    storedFileDescriptionList = new ArrayList<FileDescription>(); // (B)
-                    addFile = true;
-
-                    /**
-                     * Si ya existen registros de archivos con el mismo nombre
-                     * que el de la descripción de archivo actual (A), verifica
-                     * si ya está registrado el hash del archivo en la lista de
-                     * descripciones guardada en el mapa de archivos (B). Sólo
-                     * en caso de que no exista el hash (C), se modifica una
-                     * bandera (D) para que luego se agregue una entrada nueva a
-                     * la lista de descripciones (H).
-                     * 
-                     * Si el hash ya existe (E) y la IP no está registrada en la
-                     * lista de IPs (F), agrega la IP a la lista (G).
-                     */
-                } else { // (A)
-                    
-                    // (B)
-                    boolean fileHashExists = false;
-                    for (FileDescription storedFileDescription: storedFileDescriptionList) {
-                        if (storedFileDescription.getHash() == receivedFileDescription.getHash()) { // (E)
-                            fileHashExists = true;
-
-                            if (!storedFileDescription.getIpList().contains(peerIp)) { // (F)
-                                storedFileDescription.getIpList().add(peerIp); // (G)
-                                fileDescriptionListModified = true;
-                            }
-
-                            break;
-                        }
-                    }
-
-                    if (!fileHashExists) { // (C)
-                        addFile = true; // (D)
-                        fileDescriptionListModified = true;
-                    }
-
-                }
-
-                // (H)
-                if(addFile)
-                    storedFileDescriptionList.add(new FileDescription(
-                        receivedFileDescription.getHash(),
-                        receivedFileDescription.getSizeInBytes(),
-                        peerIp
-                    ));
+            // Agrega todos los archivos a la BD.
+            for (FileDescriptionRequest peerFileDescription: fileList) {
+                String insertStatement = String.format(
+                    "INSERT " +
+                    "INTO files (fileName, sizeInBytes, peerIp) " +
+                    "VALUES ('%s', %d, '%s')",
+                    peerFileDescription.getName(),
+                    peerFileDescription.getSizeInBytes(),
+                    peerIp
+                );
+                executeStatement(insertStatement, postgresConnection);
             }
 
-            return fileDescriptionListModified;
+        // Si hay archivos en la BD, hay que determinar si la lista cambió para
+        // realizar alguna modificación.
+        } else {
+
+            /** 
+             * Por cada registro en la lista de archivos enviada por el extremo:
+             * si existe un registro con el mismo nombre de archivo en el resultado
+             * de la consulta (AA), se elimina el registro de este último (AB) porque
+             * no hace falta ya que no se modificará en la BD; y si
+             * no existe un registro con el mismo nombre de archivo (BA), los datos
+             * enviados del archivo son almacenados en una lista temporal (BB).
+             * 
+             * Luego, se eliminan de la BD todos los registros que hayan quedado en
+             * la lista de resultados luego de haber eliminado los duplicados (CA), y
+             * se agregan a la BD los registros que hayan quedado en la lista temporal
+             * (CB).
+             * 
+             * En cualquier caso en que haya habido una modificación de la BD, se
+             * devolverá 'true' como valor de retorno; si no, 'false'.
+             */
+
+            // Crea un arreglo con los nombres de archivo de los registros de la BD.
+            // Luego de procesar los datos, este arreglo contendrá, eventualmente,
+            // los registros que tengan que eliminarse de la BD.
+            var fileDescriptionsToRemove = new ArrayList<String>();
+            do {
+                fileDescriptionsToRemove.add(storedFilesResultSet.getString("fileName"));
+            } while(storedFilesResultSet.next());
+
+            // Crea un arreglo para contener los registros de descripción de archivo que
+            // se tendrán que insertar en la BD.
+            var fileDescriptionsToInsert = new ArrayList<FileDescriptionRequest>();
+
+            for (FileDescriptionRequest peerFileDescription: fileList) {
+
+                // (AA)
+                if(fileDescriptionsToRemove.contains(
+                    peerFileDescription.getName()
+                ))
+
+                    // (AB)
+                    fileDescriptionsToRemove.remove(peerFileDescription.getName());
+
+                // (BA)
+                else {
+
+                    // (BB)
+                    fileDescriptionsToInsert.add(peerFileDescription);
+
+                }
+            }
+
+            // (CA)
+            for (String fileNameToRemove: fileDescriptionsToRemove) {
+                String deleteStatement = String.format(
+                    "DELETE " +
+                    "FROM files " +
+                    "WHERE peerIp = '%s' " +
+                        "AND fileName = '%s'",
+                    peerIp,
+                    fileNameToRemove
+                );
+                executeStatement(deleteStatement, postgresConnection);
+            }
+
+            // (CB)
+            for (FileDescriptionRequest fileDescriptionToInsert: fileDescriptionsToInsert) {
+                String insertStatement = String.format(
+                    "INSERT " +
+                    "INTO files (fileName, sizeInBytes, peerIp) " +
+                    "VALUES ('%s', %d, '%s')",
+                    fileDescriptionToInsert.getName(),
+                    fileDescriptionToInsert.getSizeInBytes(),
+                    peerIp
+                );
+                executeStatement(insertStatement, postgresConnection);
+            }
+
+            // Si hubo modificaciones, marca la correspondiente bandera.
+            if (
+                !fileDescriptionsToRemove.isEmpty()
+                || !fileDescriptionsToInsert.isEmpty()
+            )
+                updated = true;
+
         }
+        
+        // Si hubo modificaciones, guarda los cambios en la BD.
+        if (updated)
+            postgresConnection.commit();
 
+        // Deja la conexión en el estado que estaba.
+        postgresConnection.setAutoCommit(true);
 
-        /* Private */
-
-        private String peerIp;
-        @Setter private Date timestamp;
-        private List<FileDescriptionRequest> fileDescriptionList;
-
+        return updated;
     }
 
-    private class FileDescription {
-        
-        public FileDescription(
-            String hash,
-            Long sizeInBytes,
-            String ip
-        ) {
-            this.hash = hash;
-            this.sizeInBytes = sizeInBytes;
-            this.ipList.add(ip);
+    private void recordPeer(
+        String peerIp,
+        List<FileDescriptionRequest> fileList,
+        Connection postgresConnection
+    )
+        throws SQLException
+    {
+
+        // Indica que no se guardarán los datos en la BD automáticamente,
+        // sino que se registrarán cuando se lo indique mediante código.
+        postgresConnection.setAutoCommit(false);
+
+        // Agrega el extremo a la BD.
+        String insertStatement;
+        insertStatement = String.format(
+            "INSERT " +
+            "INTO active_peers (peerIp, lastConnectionTimestamp) " +
+            "VALUES ('%s', %d)",
+            peerIp,
+            (new Date()).getTime()
+        );
+        executeStatement(insertStatement, postgresConnection);
+
+        // Agrega las descripciones de archivo del extremo a la BD.
+        for (FileDescriptionRequest peerFileDescription: fileList) {
+            insertStatement = String.format(
+                "INSERT " +
+                "INTO files (fileName, sizeInBytes, peerIp) " +
+                "VALUES ('%s', %d, '%s')",
+                peerFileDescription.getName(),
+                peerFileDescription.getSizeInBytes(),
+                peerIp
+            );
+            executeStatement(insertStatement, postgresConnection);
         }
 
+        // Guarda los cambios en la BD y deja la conexión en el estado
+        // que estaba.
+        postgresConnection.commit();
+        postgresConnection.setAutoCommit(true);
 
-        /* Private */
-
-        @Getter private String hash;
-        @Getter private Long sizeInBytes;
-        @Getter private List<String> ipList;
     }
 
 }

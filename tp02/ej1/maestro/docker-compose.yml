@@ -2,7 +2,7 @@ name: tp2-ej1-maestro
 services:
 
   maestro:
-    build: maestro/.
+    build: server/.
     image: facundol/tp2-ej1-maestro:latest
     ports:
       - 8080:8080/tcp
