@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,13 +159,61 @@ public class Maestro {
     )
     public String query(@RequestParam String file) {
         
+        logger.debug(String.format(
+            "Se ejecuta método query. [file = %s]",
+            file
+        ));
+
         // Este objeto JSON se devuelve si el parámetro está vacío.
         JSONObject returningJson = (new JSONObject())
             .put("Respuesta", "400 (Requerimiento incorrecto)")
             .put("Descripción", "El parámetro 'file' no puede estar vacío.");
 
         if (file != "") {
-            // 
+
+            // TODO: Valida que el parámetro tenga caracteres válidos.
+            // Si no es válido, devuelve mensaje. Si es válido, avanza.
+
+            try {
+            
+                // Establece cuál será el driver JDBC.
+                Class.forName("org.postgresql.Driver");
+                
+                // Realiza la conexión con la BD.
+                postgresConnection = DriverManager.getConnection(
+                    postgresUrl,
+                    postgresUser,
+                    postgresPassword
+                );
+
+                // Busca en la BD y obtiene los resultados.
+                String queryStatement = String.format(
+                    "SELECT * " +
+                    "FROM files " +
+                    "WHERE fileName like '%%%s%%'",
+                    file
+                );
+                ResultSet resultSet = executeQuery(queryStatement, postgresConnection);
+
+                // Construye el JSON que se devuelve.
+                var filesJsonArray = new JSONArray();
+                var fileDescriptionJsonObject = new JSONObject();
+                while (resultSet.next()) {
+                    fileDescriptionJsonObject = (new JSONObject())
+                        .put("host",resultSet.getString("peerIp"))
+                        .put("name",resultSet.getString("fileName"))
+                        .put("sizeInBytes",resultSet.getLong("sizeInBytes"));
+                    filesJsonArray.put(fileDescriptionJsonObject);
+                }
+                returningJson = (new JSONObject())
+                    .put("files", filesJsonArray);
+
+            } catch (SQLException e) {
+                returningJson = gestionarError(e, "Error con el servidor SQL.");
+            } catch (ClassNotFoundException e) {
+                returningJson = gestionarError(e, "Error con el driver JDBC.");
+            }
+
         }
 
         return returningJson.toString();
