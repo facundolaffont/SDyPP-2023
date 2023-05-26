@@ -16,8 +16,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ar.edu.unlu.sdypp.grupo1.requests.FileDescriptionRequest;
 import ar.edu.unlu.sdypp.grupo1.requests.InformRequest;
@@ -151,10 +153,23 @@ public class Maestro {
 
     // Endpoint utilizado por los extremos para pedir que se busquen ciertos
     // archivos.
-    // @GetMapping(
-    //     value="/query"
-    // )
-    // public String query() {}
+    @GetMapping(
+        value="/query"
+    )
+    public String query(@RequestParam String file) {
+        
+        // Este objeto JSON se devuelve si el parámetro está vacío.
+        JSONObject returningJson = (new JSONObject())
+            .put("Respuesta", "400 (Requerimiento incorrecto)")
+            .put("Descripción", "El parámetro 'file' no puede estar vacío.");
+
+        if (file != "") {
+            // 
+        }
+
+        return returningJson.toString();
+
+    }
 
     // Endpoint utilizado por los extremos para anunciar que se desconectan.
     @PostMapping(
