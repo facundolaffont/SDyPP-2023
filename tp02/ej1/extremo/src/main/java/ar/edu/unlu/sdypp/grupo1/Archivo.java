@@ -8,37 +8,37 @@ import java.io.FileNotFoundException;
  */
 public class Archivo {
 
-	/**
-	 * Nombre del archivo.
-	 */
-	private String name;
+    /**
+     * Nombre del archivo.
+     */
+    private String name;
 
-	/**
-	 * Tamaño del archivo (en bytes).
-	 */
-	private long size;
+    /**
+     * Tamaño del archivo (en bytes).
+     */
+    private long size;
 
-	/**
-	 * Hash MD5 del archivo.
-	 */
-	private String hash;
+    /**
+     * Hash MD5 del archivo.
+     */
+    private String hash;
 
-	public Archivo(File file) throws FileNotFoundException, Exception {
-		this.name = file.getName();
-		this.size = file.getTotalSpace();
-		this.hash = Utilidades.md5sum(file);
-	}
+    public Archivo(File file) throws FileNotFoundException, Exception {
+        this.name = file.getName();
+        this.size = file.getTotalSpace();
+        this.hash = Utilidades.md5sum(file);
+    }
 
-	public String getName() {
-		return this.name;
-	}
+    public String getName() {
+        return this.name;
+    }
 
-	public long getSize() {
-		return this.size;
-	}
+    public long getSize() {
+        return this.size;
+    }
 
-	public String getHash() {
-		return this.hash;
-	}
+    public String getHash() {
+        return this.hash;
+    }
 
 }
