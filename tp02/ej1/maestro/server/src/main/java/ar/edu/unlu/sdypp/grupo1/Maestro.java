@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -17,11 +18,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import ar.edu.unlu.sdypp.grupo1.requests.FileDescriptionRequest;
 import ar.edu.unlu.sdypp.grupo1.requests.InformRequest;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -51,9 +55,11 @@ public class Maestro {
             public void run() {
                 try { cleanPeers(); }
                 catch (SQLException e) {
-                    gestionarError(e, "Error con el servidor SQL.");
+                    gestionarError(e, "Error con el servidor SQL.", null);
+                    System.exit(1);
                 } catch (ClassNotFoundException e) {
-                    gestionarError(e, "Error con el driver JDBC.");
+                    gestionarError(e, "Error con el driver JDBC.", null);
+                    System.exit(1);
                 }
             }
 
@@ -76,80 +82,101 @@ public class Maestro {
         value="/inform",
         headers="Content-Type=application/json"
     )
-    public String inform(@RequestBody InformRequest informRequest) {
+    public ResponseEntity<String> inform(@RequestBody InformRequest informRequest) {
         logger.debug(String.format(
             "Se anuncia el host <%s:%s>.",
             httpServletRequest.getRemoteHost(),
             httpServletRequest.getRemotePort()
         ));
 
-        /**
-         * Si la IP del extremo ya está registrada (AA), modificar
-         * la lista de artículos si hace falta, y almacena de forma
-         * obligatoria el timestamp (AB).
-         * 
-         * Si la IP del extremo no está registrada (BA), guarda el registro
-         * del extremo, la lista de artículos y el timestamp (BB).
-         */
-        var returnedJson = (new JSONObject()
-            .put("Respuesta","200 (OK)"))
-            .put("Descripción","Sin cambios. Fecha y hora de acceso actualizadas.");
-        try {
-            Class.forName("org.postgresql.Driver");
-            
-            postgresConnection = DriverManager.getConnection(
-                postgresUrl,
-                postgresUser,
-                postgresPassword
-            );
+        // Genera el mensaje y el código para el caso en el que el
+        // parámetro esté vacío.
+        var returningJson = new JSONObject()
+            .put("Respuesta", "Debe especificar el arreglo 'files'.");
+        var statusCode = HttpStatus.BAD_REQUEST;
+        
+        if (informRequest.getFiles() != null) {
 
-            ResultSet resultSet = executeQuery(
-                String.format(
-                    "SELECT * FROM active_peers WHERE peerIp = '%s'",
-                    httpServletRequest.getRemoteHost()
-                ),
-                postgresConnection
-            );
+            /**
+             * Si la IP del extremo ya está registrada (AA), modificar
+             * la lista de artículos si hace falta, y almacena de forma
+             * obligatoria el timestamp (AB).
+             * 
+             * Si la IP del extremo no está registrada (BA), guarda el registro
+             * del extremo, la lista de artículos y el timestamp (BB).
+             */
+            returningJson = (new JSONObject())
+                .put("Respuesta","Sin cambios. Fecha y hora de acceso actualizadas.");
+            statusCode = HttpStatus.OK;
+            try {
 
-            // (AA)
-            if (resultSet.next()) {
+                Class.forName("org.postgresql.Driver");
                 
-                // (AB)
-                if (updateFileList(
-                    httpServletRequest.getRemoteHost(),
-                    informRequest.getFiles(),
-                    postgresConnection
-                ))
-                    returnedJson = (new JSONObject())
-                        .put("Resultado","200 (OK)")
-                        .put("Descripción","Archivos modificados.");
+                postgresConnection = DriverManager.getConnection(
+                    postgresUrl,
+                    postgresUser,
+                    postgresPassword
+                );
 
-
-            // (BA)
-            } else {
-
-                // (BB)
-                recordPeer(
-                    httpServletRequest.getRemoteHost(),
-                    informRequest.getFiles(),
+                ResultSet resultSet = executeQuery(
+                    String.format(
+                        "SELECT * FROM active_peers WHERE peerIp = '%s'",
+                        httpServletRequest.getRemoteHost()
+                    ),
                     postgresConnection
                 );
 
-                returnedJson = (new JSONObject())
-                    .put("Resultado","200 (OK)")
-                    .put("Descripción","Extremo y archivos registrados.");
+                // (AA)
+                if (resultSet.next()) {
+                    
+                    // (AB)
+                    if (updateFileList(
+                        httpServletRequest.getRemoteHost(),
+                        informRequest.getFiles(),
+                        postgresConnection
+                    )) {
+                        returningJson = (new JSONObject())
+                            .put("Respuesta","Archivos modificados.");
+                        statusCode = HttpStatus.OK;
+                    }
 
+                // (BA)
+                } else {
+
+                    // (BB)
+                    recordPeer(
+                        httpServletRequest.getRemoteHost(),
+                        informRequest.getFiles(),
+                        postgresConnection
+                    );
+
+                    // Configura el mensaje y código que serán devueltos al cliente.
+                    String responseMessage;
+                    if (informRequest.getFiles() != null) responseMessage = "Extremo y archivos registrados.";
+                    else responseMessage = "Extremo registrado.";
+                    returningJson = (new JSONObject())
+                        .put("Respuesta", responseMessage);
+                    statusCode = HttpStatus.OK;
+
+                }
+
+                postgresConnection.close();
+
+            } catch (SQLException e) {
+                returningJson = gestionarError(e, "Error con el servidor SQL.", statusCode);
+
+            } catch (ClassNotFoundException e) {
+                returningJson = gestionarError(e, "Error con el driver JDBC.", statusCode);
             }
 
-            postgresConnection.close();
-
-        } catch (SQLException e) {
-            returnedJson = gestionarError(e, "Error con el servidor SQL.");
-        } catch (ClassNotFoundException e) {
-            returnedJson = gestionarError(e, "Error con el driver JDBC.");
         }
 
-        return returnedJson.toString();
+        return ResponseEntity
+            .status(statusCode)
+            .body(
+                returningJson.toString()
+            );
+
     }
 
     // Endpoint utilizado por los extremos para pedir que se busquen ciertos
@@ -157,66 +184,90 @@ public class Maestro {
     @GetMapping(
         value="/query"
     )
-    public String query(@RequestParam String file) {
+    public ResponseEntity<String> query(@RequestParam String file) {
         
         logger.debug(String.format(
             "Se ejecuta método query. [file = %s]",
             file
         ));
 
-        // Este objeto JSON se devuelve si el parámetro está vacío.
+        // Este objeto JSON se devuelve si el extremo no está registrado
+        // en la BD.
         JSONObject returningJson = (new JSONObject())
-            .put("Respuesta", "400 (Requerimiento incorrecto)")
-            .put("Descripción", "El parámetro 'file' no puede estar vacío.");
+            .put("Respuesta", "El extremo no está registrado en la BD.");
+        var statusCode = HttpStatus.BAD_REQUEST;
 
-        if (file != "") {
+        try {
 
-            // TODO: Valida que el parámetro tenga caracteres válidos.
-            // Si no es válido, devuelve mensaje. Si es válido, avanza.
+            // Establece cuál será el driver JDBC.
+            Class.forName("org.postgresql.Driver");
+                            
+            // Realiza la conexión con la BD.
+            postgresConnection = DriverManager.getConnection(
+                postgresUrl,
+                postgresUser,
+                postgresPassword
+            );
 
-            try {
-            
-                // Establece cuál será el driver JDBC.
-                Class.forName("org.postgresql.Driver");
-                
-                // Realiza la conexión con la BD.
-                postgresConnection = DriverManager.getConnection(
-                    postgresUrl,
-                    postgresUser,
-                    postgresPassword
-                );
+            // Realiza la búsqueda si el extremo está registrado
+            // en la BD.
+            ResultSet resultSet = executeQuery(
+                String.format(
+                    "SELECT * FROM active_peers WHERE peerIp = '%s'",
+                    httpServletRequest.getRemoteHost()
+                ),
+                postgresConnection
+            );
+            if (resultSet.next()) {
 
-                // Busca en la BD y obtiene los resultados.
-                String queryStatement = String.format(
-                    "SELECT * " +
-                    "FROM files " +
-                    "WHERE fileName like '%%%s%%'",
-                    file
-                );
-                ResultSet resultSet = executeQuery(queryStatement, postgresConnection);
-
-                // Construye el JSON que se devuelve.
-                var filesJsonArray = new JSONArray();
-                var fileDescriptionJsonObject = new JSONObject();
-                while (resultSet.next()) {
-                    fileDescriptionJsonObject = (new JSONObject())
-                        .put("host",resultSet.getString("peerIp"))
-                        .put("name",resultSet.getString("fileName"))
-                        .put("sizeInBytes",resultSet.getLong("sizeInBytes"));
-                    filesJsonArray.put(fileDescriptionJsonObject);
-                }
+                // Este objeto JSON se devuelve si el parámetro está vacío.
                 returningJson = (new JSONObject())
-                    .put("files", filesJsonArray);
+                    .put("Respuesta", "El parámetro 'file' no puede estar vacío.");
+                statusCode = HttpStatus.BAD_REQUEST;
 
-            } catch (SQLException e) {
-                returningJson = gestionarError(e, "Error con el servidor SQL.");
-            } catch (ClassNotFoundException e) {
-                returningJson = gestionarError(e, "Error con el driver JDBC.");
+                if (file != "") {
+
+                    // TODO: Valida que el parámetro tenga caracteres válidos.
+                    // Si no es válido, devuelve mensaje. Si es válido, avanza.
+
+                    // Busca en la BD y obtiene los resultados.
+                    String queryStatement = String.format(
+                        "SELECT * " +
+                        "FROM files " +
+                        "WHERE fileName like '%%%s%%'",
+                        file
+                    );
+                    resultSet = executeQuery(queryStatement, postgresConnection);
+
+                    // Construye el JSON que se devuelve.
+                    var filesJsonArray = new JSONArray();
+                    var fileDescriptionJsonObject = new JSONObject();
+                    while (resultSet.next()) {
+                        fileDescriptionJsonObject = (new JSONObject())
+                            .put("host",resultSet.getString("peerIp"))
+                            .put("name",resultSet.getString("fileName"))
+                            .put("sizeInBytes",resultSet.getLong("sizeInBytes"));
+                        filesJsonArray.put(fileDescriptionJsonObject);
+                    }
+                    returningJson = (new JSONObject())
+                        .put("files", filesJsonArray);
+                    statusCode = HttpStatus.OK;
+
+                }
+
             }
 
+        } catch (SQLException e) {
+            returningJson = gestionarError(e, "Error con el servidor SQL.", statusCode);
+        } catch (ClassNotFoundException e) {
+            returningJson = gestionarError(e, "Error con el driver JDBC.",  statusCode);
         }
 
-        return returningJson.toString();
+        return ResponseEntity
+            .status(statusCode)
+            .body(
+                returningJson.toString()
+            );
 
     }
 
@@ -224,11 +275,17 @@ public class Maestro {
     @PostMapping(
         value="/exit"
     )
-    public String exit()
+    public ResponseEntity<String> exit()
         throws ClassNotFoundException, SQLException
     {
 
         logger.debug("Se ejecuta el método exit.");
+
+        // Este objeto JSON se devuelve si el extremo no está registrado
+        // en la BD.
+        JSONObject returningJson = (new JSONObject())
+            .put("Respuesta", "El extremo no está registrado en la base de datos.");
+        var statusCode = HttpStatus.BAD_REQUEST;
 
         // Establece el driver para JDBC y se conecta al servidor
         // de la BD.
@@ -239,34 +296,53 @@ public class Maestro {
             postgresPassword
         );
 
-        // Indica que no se guardarán los datos en la BD automáticamente,
-        // sino que se registrarán cuando se lo indique mediante código.
-        postgresConnection.setAutoCommit(false);
-
-        // Elimina los registros del extremo.
-        String deleteStatement = String.format(
-            "DELETE " +
-            "FROM active_peers " +
-            "WHERE peerIp = '%s'",
-            httpServletRequest.getRemoteHost()
+        // Elimina los registros del extremo, si el extremo está registrado
+        // en la BD.
+        ResultSet resultSet = executeQuery(
+            String.format(
+                "SELECT * FROM active_peers WHERE peerIp = '%s'",
+                httpServletRequest.getRemoteHost()
+            ),
+            postgresConnection
         );
-        executeStatement(deleteStatement, postgresConnection);
-        logger.info(String.format(
-            "Se eliminaron los registros del extremo. [IP del extremo = %s]",
-            httpServletRequest.getRemoteHost()
-        ));
+        if (resultSet.next()) {
 
-        // Guarda los cambios en la BD, deja el autocommit como estaba,
-        // y cierra la conexión.
-        postgresConnection.commit();
-        postgresConnection.setAutoCommit(true);
-        postgresConnection.close();
+            // Indica que no se guardarán los datos en la BD automáticamente,
+            // sino que se registrarán cuando se lo indique mediante código.
+            postgresConnection.setAutoCommit(false);
 
-        return (new JSONObject())
-            .put("Respuesta","200 (OK)")
-            .put("Descripción","Extremo y archivos eliminados.")
-            .toString();
+            // Elimina los registros del extremo.
+            String deleteStatement = String.format(
+                "DELETE " +
+                "FROM active_peers " +
+                "WHERE peerIp = '%s'",
+                httpServletRequest.getRemoteHost()
+            );
+            executeStatement(deleteStatement, postgresConnection);
+            logger.info(String.format(
+                "Se eliminaron los registros del extremo. [IP del extremo = %s]",
+                httpServletRequest.getRemoteHost()
+            ));
+
+            // Guarda los cambios en la BD, deja el autocommit como estaba,
+            // y cierra la conexión.
+            postgresConnection.commit();
+            postgresConnection.setAutoCommit(true);
+            postgresConnection.close();
+
+            // Configura el mensaje que se devolverá al cliente.
+            returningJson = (new JSONObject())
+                .put("Respuesta", "Extremo y archivos eliminados.");
+            statusCode = HttpStatus.OK;
         
+        }
+
+        return ResponseEntity
+            .status(statusCode)
+            .body(
+                returningJson.toString()
+            );
+
     }
 
 
@@ -280,21 +356,26 @@ public class Maestro {
     String postgresPassword;
     @Autowired private HttpServletRequest httpServletRequest;
 
-    private JSONObject gestionarError(Exception e, String mensaje) {
+    /**
+     * Gestiona errores del lado del servidor.
+     * 
+     * @param e - Excepción que será manejada por este método.
+     * @param mensaje - Mensaje que se logueará.
+     * @param httpStatusOutVariable - Variable para almacenar el código HTTP que generará este método. Puede ser null, si no hace falta guardar el código HTTP.
+     * @return Objeto JSON con un mensaje por defecto indicando que hubo un error en el servidor.
+     */
+    private JSONObject gestionarError(Exception e, String mensaje, HttpStatus httpStatusOutVariable) {
 
         // Muestra el mensaje en la consola del servidor.
         e.printStackTrace();
         logger.debug(mensaje);
 
-        // Devuelve el mensaje para el usuario.
+        // Devuelve el mensaje JSON y el código HTTP.
+        if (httpStatusOutVariable != null)
+            httpStatusOutVariable = HttpStatus.INTERNAL_SERVER_ERROR;
+
         return (new JSONObject())
-            .put(
-                "Respuesta",
-                "500 (Error interno del servidor)"
-            ).put(
-                "Descripción",
-                mensaje
-            );
+            .put("Respuesta", "Error interno del servidor.");
 
     }
 
@@ -366,25 +447,32 @@ public class Maestro {
 
         /**
          * Si no hay registros de archivos en la BD, significa que todos los
-         * archivos que se enviaron en el POST deben almacenarse en la BD.
+         * archivos que se enviaron en el POST deben almacenarse en la BD,
+         * si es que el extremo anunció al menos 1 archivo compartido.
          */
         if (!storedFilesResultSet.next()) {
 
-            // Marca la bandera que indica que hubo modificación en el listado
-            // de archivos del extremo.
-            updated = true;
+            // Agrega todos los archivos a la BD, si hay al menos 1 archivo
+            // para compartir.
+            if (fileList != null) {
 
-            // Agrega todos los archivos a la BD.
-            for (FileDescriptionRequest peerFileDescription: fileList) {
-                String insertStatement = String.format(
-                    "INSERT " +
-                    "INTO files (fileName, sizeInBytes, peerIp) " +
-                    "VALUES ('%s', %d, '%s')",
-                    peerFileDescription.getName(),
-                    peerFileDescription.getSizeInBytes(),
-                    peerIp
-                );
-                executeStatement(insertStatement, postgresConnection);
+                // Marca la bandera que indica que hubo modificación en el listado
+                // de archivos del extremo.
+                updated = true;
+
+                // Registra en la BD las descripciones de archivo.
+                for (FileDescriptionRequest peerFileDescription: fileList) {
+                    String insertStatement = String.format(
+                        "INSERT " +
+                        "INTO files (fileName, sizeInBytes, peerIp) " +
+                        "VALUES ('%s', %d, '%s')",
+                        peerFileDescription.getName(),
+                        peerFileDescription.getSizeInBytes(),
+                        peerIp
+                    );
+                    executeStatement(insertStatement, postgresConnection);
+                }
+
             }
 
         // Si hay archivos en la BD, hay que determinar si la lista cambió para
@@ -417,25 +505,30 @@ public class Maestro {
             } while(storedFilesResultSet.next());
 
             // Crea un arreglo para contener los registros de descripción de archivo que
-            // se tendrán que insertar en la BD.
+            // se tendrán que insertar en la BD. La creación de esta variable es necesaria
+            // incluso si el extremo anuncia que comparte cero archivos.
             var fileDescriptionsToInsert = new ArrayList<FileDescriptionRequest>();
 
-            for (FileDescriptionRequest peerFileDescription: fileList) {
+            // Marca los archivos que no se eliminarán de la BD porque están también
+            // en la carpeta compartida del extremo.
+            if (fileList != null) {
+                for (FileDescriptionRequest peerFileDescription: fileList) {
 
-                // (AA)
-                if(fileDescriptionsToRemove.contains(
-                    peerFileDescription.getName()
-                ))
+                    // (AA)
+                    if(fileDescriptionsToRemove.contains(
+                        peerFileDescription.getName()
+                    ))
 
-                    // (AB)
-                    fileDescriptionsToRemove.remove(peerFileDescription.getName());
+                        // (AB)
+                        fileDescriptionsToRemove.remove(peerFileDescription.getName());
 
-                // (BA)
-                else {
+                    // (BA)
+                    else {
 
-                    // (BB)
-                    fileDescriptionsToInsert.add(peerFileDescription);
+                        // (BB)
+                        fileDescriptionsToInsert.add(peerFileDescription);
 
+                    }
                 }
             }
 
@@ -492,6 +585,14 @@ public class Maestro {
         return updated;
     }
 
+    /**
+     * Registra el extremo, y los archivos que comparte, si los hay.
+     * 
+     * @param peerIp - IP del extremo.
+     * @param fileList - Lista de los archivos que se tienen que registrar. Puede ser {@code null}, si no hay archivos para compartir.
+     * @param postgresConnection - Conexión preconfigurada con el servidor PostgreSQL.
+     * @throws SQLException
+     */
     private void recordPeer(
         String peerIp,
         List<FileDescriptionRequest> fileList,
@@ -515,17 +616,20 @@ public class Maestro {
         );
         executeStatement(insertStatement, postgresConnection);
 
-        // Agrega las descripciones de archivo del extremo a la BD.
-        for (FileDescriptionRequest peerFileDescription: fileList) {
-            insertStatement = String.format(
-                "INSERT " +
-                "INTO files (fileName, sizeInBytes, peerIp) " +
-                "VALUES ('%s', %d, '%s')",
-                peerFileDescription.getName(),
-                peerFileDescription.getSizeInBytes(),
-                peerIp
-            );
-            executeStatement(insertStatement, postgresConnection);
+        // Agrega las descripciones de archivo del extremo a la BD,
+        // si el extremo tiene archivos que compartir.
+        if (fileList !=  null) {
+            for (FileDescriptionRequest peerFileDescription: fileList) {
+                insertStatement = String.format(
+                    "INSERT " +
+                    "INTO files (fileName, sizeInBytes, peerIp) " +
+                    "VALUES ('%s', %d, '%s')",
+                    peerFileDescription.getName(),
+                    peerFileDescription.getSizeInBytes(),
+                    peerIp
+                );
+                executeStatement(insertStatement, postgresConnection);
+            }
         }
 
         // Guarda los cambios en la BD y deja la conexión en el estado
@@ -590,7 +694,7 @@ public class Maestro {
                 logger.info("Registro eliminado.");
             }
 
-        } 
+        }
 
         // Guarda los cambios en la BD, deja el autocommit como estaba,
         // y cierra la conexión.
