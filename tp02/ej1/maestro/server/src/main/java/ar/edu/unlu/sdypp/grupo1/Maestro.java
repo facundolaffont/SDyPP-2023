@@ -200,7 +200,7 @@ public class Maestro {
 
         return (new JSONObject())
             .put("Respuesta","200 (OK)")
-            .put("Descripción","Se eliminaron los registros del extremo.")
+            .put("Descripción","Extremo y archivos eliminados.")
             .toString();
         
     }
