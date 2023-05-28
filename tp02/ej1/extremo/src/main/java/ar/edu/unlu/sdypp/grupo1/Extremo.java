@@ -2,6 +2,7 @@ package ar.edu.unlu.sdypp.grupo1;
 
 import java.util.ArrayList;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,12 @@ public class Extremo {
      */
     private ArrayList<Archivo> sharedFiles;
 
+    /**
+     * Servicio para las peticiones de red.
+     */
+    @Autowired
+    private ServicioRed networkService;
+
     public void setMastersIPs(ArrayList<String> mastersIPs) {
         this.mastersIPs = mastersIPs;
     }
@@ -39,15 +46,14 @@ public class Extremo {
      * Informa a los nodos maestros sobre la existencia de este nodo extremo, y
      * anuncia los archivos disponibles para compartir. Iterará sobre los maestros
      * hasta que alguno responda.
-     * @param service Servicio de red para realizar la petición HTTP.
      * @return Boolean que indica si se informó exitosamente a los nodos maestros.
      */
-    public boolean inform(ServicioRed service) {
+    public boolean inform() {
         JSONObject body = new JSONObject();
         body.put("files", this.sharedFiles);
         for (String master : this.mastersIPs) {
             try {
-                ResponseEntity<String> response = service.postRequest(String.format("http://%s:8080/inform", master), body);
+                ResponseEntity<String> response = this.networkService.postRequest(String.format("http://%s:8080/inform", master), body);
                 return response.getStatusCode().is2xxSuccessful();
             } catch (RestClientException e) {
                 // Falló la petición, se intentará con el siguiente nodo maestro.
@@ -60,12 +66,11 @@ public class Extremo {
     /**
      * Informa a los nodos maestros la desconexión de la red. Iterará sobre los
      * maestros hasta que alguno responda.
-     * @param service Servicio de red para realizar la petición HTTP.
      */
-    public void disconnect(ServicioRed service) {
+    public void disconnect() {
         for (String master : this.mastersIPs) {
             try {
-                service.postRequest(String.format("http://%s:8080/exit", master));
+                this.networkService.postRequest(String.format("http://%s:8080/exit", master));
                 return;
             } catch (RestClientException e) {
                 // Falló la petición, se intentará con el siguiente nodo maestro.

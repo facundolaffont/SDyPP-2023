@@ -23,12 +23,6 @@ public class Inicializador implements CommandLineRunner {
     @Autowired
     private ServicioArchivos fileService;
 
-    /**
-     * Servicio de red.
-     */
-    @Autowired
-    private ServicioRed networkService;
-
     @Override
     public void run(String... args) throws Exception {
         try {
@@ -45,14 +39,14 @@ public class Inicializador implements CommandLineRunner {
             System.exit(1);
         }
         // Informa la existencia del nodo a los maestros.
-        if (!this.extreme.inform(this.networkService)) {
+        if (!this.extreme.inform()) {
             System.err.println("No se pudo comunicar con ningún nodo maestro.");
             System.exit(1);
         }
         // Abre un bucle infinito para reportarse cada cierto tiempo.
         while (true) {
             Thread.sleep(Extremo.INFORM_INTERVAL);
-            this.extreme.inform(this.networkService);
+            this.extreme.inform();
         }
     }
 

@@ -18,9 +18,6 @@ public class Controlador {
     private Extremo extreme;
 
     @Autowired
-    private ServicioRed networkService;
-
-    @Autowired
     private ResourceLoader rl;
 
     /**
@@ -44,7 +41,7 @@ public class Controlador {
     @GetMapping("/disconnect")
     @ResponseBody
     public void disconnect() {
-        this.extreme.disconnect(this.networkService);
+        this.extreme.disconnect();
         System.exit(0);
     }
 
