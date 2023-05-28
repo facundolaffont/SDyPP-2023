@@ -42,6 +42,7 @@ public class Controlador {
      * el programa.
      */
     @GetMapping("/disconnect")
+    @ResponseBody
     public void disconnect() {
         this.extreme.disconnect(this.networkService);
         System.exit(0);

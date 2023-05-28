@@ -14,24 +14,20 @@ public class Inicializador implements CommandLineRunner {
      * Clase principal (posee las direcciones IP de los nodos maestros y los
      * archivos compartidos).
      */
-    private final Extremo extreme;
+    @Autowired
+    private Extremo extreme;
 
     /**
      * Servicio de archivos.
      */
-    private final ServicioArchivos fileService;
+    @Autowired
+    private ServicioArchivos fileService;
 
     /**
      * Servicio de red.
      */
-    private final ServicioRed networkService;
-
     @Autowired
-    public Inicializador(Extremo extreme, ServicioArchivos fileService, ServicioRed networkService) {
-        this.extreme = extreme;
-        this.fileService = fileService;
-        this.networkService = networkService;
-    }
+    private ServicioRed networkService;
 
     @Override
     public void run(String... args) throws Exception {
