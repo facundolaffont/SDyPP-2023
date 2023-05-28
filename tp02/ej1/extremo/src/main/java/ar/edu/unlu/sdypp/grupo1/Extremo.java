@@ -57,6 +57,22 @@ public class Extremo {
         return false;
     }
 
+    /**
+     * Informa a los nodos maestros la desconexión de la red. Iterará sobre los
+     * maestros hasta que alguno responda.
+     * @param service Servicio de red para realizar la petición HTTP.
+     */
+    public void disconnect(ServicioRed service) {
+        for (String master : this.mastersIPs) {
+            try {
+                service.postRequest(String.format("http://%s:8080/exit", master));
+                return;
+            } catch (RestClientException e) {
+                // Falló la petición, se intentará con el siguiente nodo maestro.
+            }
+        }
+    }
+
     public static void main(String[] args) {
         if (args.length < 2) {
             System.err.println("Uso: java -jar tp2-ej1-extremo-1.0.0-rc.jar <fichero_maestros> <directorio_compartido>");

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Red Peer-To-Peer</title>
+    <link href="styles.css" rel="stylesheet">
+    <link href="bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="text-center my-4">Red Peer-To-Peer</h1>
+      <h3 class="text-center my-3">Sistemas Distribuidos y Programación Paralela</h3>
+      <h4 class="text-center my-3">Universidad Nacional de Luján</h4>
+      <div id="connected-panel">
+        <div class="input-group my-4">
+          <input type="text" class="form-control form-control-lg" id="searchField" placeholder="Buscar archivos..." aria-label="Buscar archivos..." aria-describedby="search-btn">
+          <button class="btn btn-outline-primary" type="button" id="search-btn">Buscar</button>
+        </div>
+        <div class="d-grid d-sm-flex justify-content-sm-end my-4">
+          <button type="button" class="btn btn-danger btn-lg" id="disconnect-btn">Desconectarse</button>
+        </div>
+      </div>
+      <div id="disconnected-panel" class="d-none">
+        <h5 class="text-center my-4">Te has desconectado.</h5>
+      </div>
+    </div>
+    <script src="main.js"></script>
+    <script src="bootstrap.bundle.min.js"></script>
+  </body>
+</html>
