@@ -34,7 +34,7 @@ public class Inicializador implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws Exception {
         try {
             // Levanta las direcciones IP de los nodos maestros.
             this.extreme.setMastersIPs(this.fileService.readFile(args[0]));
@@ -49,8 +49,15 @@ public class Inicializador implements CommandLineRunner {
             System.exit(1);
         }
         // Informa la existencia del nodo a los maestros.
-        boolean response = this.extreme.inform(this.networkService);
-        /** @TODO Continuar con el inform... es un POST, pasar archivos... */
+        if (!this.extreme.inform(this.networkService)) {
+            System.err.println("No se pudo comunicar con ningún nodo maestro.");
+            System.exit(1);
+        }
+        // Abre un bucle infinito para reportarse cada cierto tiempo.
+        while (true) {
+            Thread.sleep(Extremo.INFORM_INTERVAL);
+            this.extreme.inform(this.networkService);
+        }
     }
 
 }

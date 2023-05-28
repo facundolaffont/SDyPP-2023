@@ -11,6 +11,13 @@ import org.springframework.web.client.RestClientException;
 public class Extremo {
 
     /**
+     * Tiempo (en milisegundos) que debe pasar entre los informes de vida del
+     * nodo a los maestros. Este valor debe estar acorde a la configuración de
+     * los nodos maestros.
+     */
+    public static final long INFORM_INTERVAL = 60000;
+
+    /**
      * Lista de las direcciones IP de los nodos maestros.
      */
     private ArrayList<String> mastersIPs;
