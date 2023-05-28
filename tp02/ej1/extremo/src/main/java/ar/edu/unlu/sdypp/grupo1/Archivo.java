@@ -1,7 +1,6 @@
 package ar.edu.unlu.sdypp.grupo1;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 /**
  * Archivo a compartir en la red P2P.
@@ -11,34 +10,24 @@ public class Archivo {
     /**
      * Nombre del archivo.
      */
-    private String name;
+    private final String name;
 
     /**
      * Tamaño del archivo (en bytes).
      */
-    private long size;
+    private final long sizeInBytes;
 
-    /**
-     * Hash MD5 del archivo.
-     */
-    private String hash;
-
-    public Archivo(File file) throws FileNotFoundException, Exception {
+    public Archivo(File file) throws SecurityException {
         this.name = file.getName();
-        this.size = file.getTotalSpace();
-        this.hash = Utilidades.md5sum(file);
+        this.sizeInBytes = file.length();
     }
 
     public String getName() {
         return this.name;
     }
 
-    public long getSize() {
-        return this.size;
-    }
-
-    public String getHash() {
-        return this.hash;
+    public long getSizeInBytes() {
+        return this.sizeInBytes;
     }
 
 }

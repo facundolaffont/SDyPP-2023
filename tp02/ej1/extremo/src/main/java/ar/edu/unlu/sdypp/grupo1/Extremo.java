@@ -6,7 +6,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 public class Extremo {
@@ -30,30 +29,25 @@ public class Extremo {
     }
 
     /**
-     * Realiza una petición HTTP a los nodos maestros. Iterará sobre ellos hasta
-     * que uno responda.
-     * @param endpoint Endpoint del nodo maestro al cual se realizará la petición.
-     * @return Objeto JSON con una y solo una de las siguientes propiedades:
-     *         {
-     *           "data": Respuesta devuelta en caso de éxito.
-     *           "error": Mensaje de error en caso de fallo.
-     *         }
+     * Informa a los nodos maestros sobre la existencia de este nodo extremo, y
+     * anuncia los archivos disponibles para compartir. Iterará sobre los maestros
+     * hasta que alguno responda.
+     * @param service Servicio de red para realizar la petición HTTP.
+     * @return Boolean que indica si se informó exitosamente a los nodos maestros.
      */
-    public JSONObject makeRequest(String endpoint) {
-        RestTemplate rt = new RestTemplate();
+    public boolean inform(ServicioRed service) {
+        JSONObject body = new JSONObject();
+        body.put("files", this.sharedFiles);
         for (String master : this.mastersIPs) {
             try {
-                ResponseEntity<String> response = rt.getForEntity(String.format("http://%s:8080/%s", master, endpoint), String.class);
-                if (response.getStatusCode().is2xxSuccessful()) {
-                    return new JSONObject("{\"data\":" + response.getBody() + "}");
-                }
-                return new JSONObject("{\"error\":" + response.getBody() + "}");
+                ResponseEntity<String> response = service.postRequest(String.format("http://%s:8080/inform", master), body);
+                return response.getStatusCode().is2xxSuccessful();
             } catch (RestClientException e) {
-                // No hago nada, se hará la petición al siguiente nodo maestro.
+                // Falló la petición, se intentará con el siguiente nodo maestro.
             }
         }
-        // Ningún nodo maestro respondió.
-        return new JSONObject("{\"error\":\"No se obtuvo respuesta de ningún nodo maestro.\"}");
+        // No se obtuvo respuesta de ningún nodo maestro.
+        return false;
     }
 
     public static void main(String[] args) {
