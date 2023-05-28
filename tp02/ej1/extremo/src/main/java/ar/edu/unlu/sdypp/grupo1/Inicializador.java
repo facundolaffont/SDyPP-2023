@@ -35,11 +35,6 @@ public class Inicializador implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Valida los argumentos.
-        if (args.length < 2) {
-            System.err.println("El programa requiere dos parámetros. Visite la ayuda para más información.");
-            System.exit(1);
-        }
         // Levanta las direcciones IP de los nodos maestros.
         try {
             this.extreme.setMastersIPs(this.fileService.readFile(args[0]));

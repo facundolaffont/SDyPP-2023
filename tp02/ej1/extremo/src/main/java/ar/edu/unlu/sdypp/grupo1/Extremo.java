@@ -51,6 +51,15 @@ public class Extremo {
     }
 
     public static void main(String[] args) {
+        if (args.length < 2) {
+            System.err.println("Uso: java -jar tp2-ej1-extremo-1.0.0-rc.jar <fichero_maestros> <directorio_compartido>");
+            System.err.println();
+            System.err.println("Donde:");
+            System.err.println("  <fichero_maestros>\t\tRuta a un fichero que contenga las direcciones IP de los nodos"
+                    + " maestros. Debe tener una dirección por línea.");
+            System.err.println("  <directorio_compartido>\tRuta al directorio compartido.");
+            System.exit(1);
+        }
         SpringApplication.run(Extremo.class, args);
     }
 
