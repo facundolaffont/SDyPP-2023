@@ -35,24 +35,17 @@ public class Inicializador implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Levanta las direcciones IP de los nodos maestros.
         try {
+            // Levanta las direcciones IP de los nodos maestros.
             this.extreme.setMastersIPs(this.fileService.readFile(args[0]));
-        } catch (IllegalArgumentException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-        } catch (Exception e) {
-            System.err.println("No se pudo cargar la lista de direcciones IP de los nodos maestros.");
-            System.exit(1);
-        }
-        // Carga los archivos compartidos.
-        try {
+            // Carga los archivos compartidos.
             this.extreme.setSharedFiles(this.fileService.getSharedFiles(args[1]));
         } catch (IllegalArgumentException e) {
             System.err.println(e.getMessage());
             System.exit(1);
         } catch (Exception e) {
-            System.err.println("No se pudo iniciar la carpeta compartida.");
+            System.err.println("No se pudo iniciar el nodo. Verifique los permisos de la carpeta compartida y del"
+                    + " fichero de direcciones de los maestros.");
             System.exit(1);
         }
         // Informa la existencia del nodo a los maestros.
