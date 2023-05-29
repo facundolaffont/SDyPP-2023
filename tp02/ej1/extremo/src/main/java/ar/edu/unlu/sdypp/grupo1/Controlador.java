@@ -1,9 +1,14 @@
 package ar.edu.unlu.sdypp.grupo1;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -51,6 +56,26 @@ public class Controlador {
         } catch (ExcepcionMaestro e) {
             return "error=" + e.getMessage();
         }
+    }
+
+    /**
+     * Transfiere un archivo compartido solicitado por otro nodo extremo.
+     * @param search Nombre del archivo solicitado.
+     * @return Archivo binario solicitado.
+     * @throws Exception Si se produce algún error al leer el archivo.
+     */
+    @GetMapping("/download")
+    public ResponseEntity<FileSystemResource> download(@RequestParam("name") String name) throws Exception {
+        File file = this.extreme.getFile(name);
+        if (!file.exists() || !file.isFile() || file.isHidden()) {
+            // Error 404.
+            return ResponseEntity.notFound().build();
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", name);
+        FileSystemResource resource = new FileSystemResource(file);
+        return ResponseEntity.ok().headers(headers).body(resource);
     }
 
     /**

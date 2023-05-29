@@ -62,9 +62,19 @@ function buildTable(json) {
                + "  <th scope=\"row\">" + file.name + "</th>"
                + "  <td>" + file.sizeInBytes + "</td>"
                + "  <td>" + file.host + "</td>"
-               + "  <td></td>"      // @TODO Link de descarga.
+               + "  <td><button type=\"button\" onclick=\"downloadFile(\"" + file.host + "\", \"" + file.name + "\")\">Descargar</button></td>"
                + "</tr>";
     });
     table += "</tbody></table>";
     return table;
+}
+
+/**
+ * Solicita la descarga de un archivo.
+ * @param {string} host Dirección IP del host desde el cual se descargará el archivo.
+ * @param {string} name Nombre del archivo solicitado.
+ */
+function downloadFile(host, name) {
+    fetch("http://" + host + ":8080/download?name=" + name);
+    /** @TODO Guardar archivo, renombrar, mostrar estado de descarga, etc. */
 }

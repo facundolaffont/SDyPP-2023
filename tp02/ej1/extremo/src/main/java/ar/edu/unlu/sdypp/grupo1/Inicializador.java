@@ -25,6 +25,7 @@ public class Inicializador implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        this.extreme.setSharedFolder(args[1]);
         try {
             // Levanta las direcciones IP de los nodos maestros.
             this.extreme.setMastersIPs(this.fileService.readFile(args[0]));

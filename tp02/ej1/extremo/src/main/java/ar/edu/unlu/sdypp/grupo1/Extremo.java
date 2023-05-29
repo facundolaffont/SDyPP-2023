@@ -1,7 +1,7 @@
 package ar.edu.unlu.sdypp.grupo1;
 
+import java.io.File;
 import java.util.ArrayList;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -20,6 +20,11 @@ public class Extremo {
     public static final long INFORM_INTERVAL = 60000;
 
     /**
+     * Ruta a la carpeta compartida.
+     */
+    private String sharedFolder;
+
+    /**
      * Lista de las direcciones IP de los nodos maestros.
      */
     private ArrayList<String> mastersIPs;
@@ -34,6 +39,10 @@ public class Extremo {
      */
     @Autowired
     private ServicioRed networkService;
+
+    public void setSharedFolder(String sharedFolder) {
+        this.sharedFolder = sharedFolder;
+    }
 
     public void setMastersIPs(ArrayList<String> mastersIPs) {
         this.mastersIPs = mastersIPs;
@@ -92,6 +101,16 @@ public class Extremo {
         // No se obtuvo respuesta de ningún nodo maestro.
         throw new ExcepcionMaestro("No se obtuvo respuesta para la búsqueda"
                 + " solicitada. Por favor verifique su conexión.");
+    }
+
+    /**
+     * Retorna una instancia de `File` con un archivo solicitado de la carpeta
+     * compartida.
+     * @param name Nombre del archivo solicitado.
+     * @return Instancia de `File` con el archivo solicitado.
+     */
+    public File getFile(String name) {
+        return new File(this.sharedFolder + File.separator + name);
     }
 
     /**
