@@ -1,6 +1,7 @@
 package ar.edu.unlu.sdypp.grupo1;
 
 import java.util.ArrayList;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -53,7 +54,10 @@ public class Extremo {
         body.put("files", this.sharedFiles);
         for (String master : this.mastersIPs) {
             try {
-                ResponseEntity<String> response = this.networkService.postRequest(String.format("http://%s:8080/inform", master), body);
+                ResponseEntity<String> response = this.networkService.postRequest(
+                    String.format("http://%s:8080/inform", master),
+                    body
+                );
                 return response.getStatusCode().is2xxSuccessful();
             } catch (RestClientException e) {
                 // Falló la petición, se intentará con el siguiente nodo maestro.
@@ -61,6 +65,33 @@ public class Extremo {
         }
         // No se obtuvo respuesta de ningún nodo maestro.
         return false;
+    }
+
+    /**
+     * Realiza una búsqueda de archivos dado un patrón de búsqueda en la red P2P.
+     * @param search Patrón de búsqueda.
+     * @return Respuesta de los nodos maestros.
+     * @throws ExcepcionMaestro Si no se obtiene respuesta de los nodos maestros,
+     *                          o la misma no se comprende.
+     */
+    public String query(String search) throws ExcepcionMaestro {
+        for (String master : this.mastersIPs) {
+            try {
+                ResponseEntity<String> response = this.networkService.getRequest(
+                    String.format("http://%s:8080/query?file=%s", master, search)
+                );
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    return response.getBody();
+                }
+                // Código de respuesta distinto a 200.
+                throw new ExcepcionMaestro("Falló la petición de búsqueda en la red.");
+            } catch (RestClientException e) {
+                // Falló la petición, se intentará con el siguiente nodo maestro.
+            }
+        }
+        // No se obtuvo respuesta de ningún nodo maestro.
+        throw new ExcepcionMaestro("No se obtuvo respuesta para la búsqueda"
+                + " solicitada. Por favor verifique su conexión.");
     }
 
     /**
