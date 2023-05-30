@@ -20,14 +20,6 @@
 
   <dependencies>
 
-    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
-    <!-- Permite crear fácilmente una API HTTP. -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-      <version>3.0.5</version>
-    </dependency>
-
     <!-- https://mvnrepository.com/artifact/org.json/json -->
     <!-- Permite manipular JSONs. -->
     <dependency>
@@ -35,6 +27,49 @@
       <artifactId>json</artifactId>
       <version>20230227</version>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.26</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
+    <!-- Permite crear fácilmente una API HTTP. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <version>3.1.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.4.7</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/io.github.cdimascio/java-dotenv -->
+    <dependency>
+        <groupId>io.github.cdimascio</groupId>
+        <artifactId>java-dotenv</artifactId>
+        <version>5.2.2</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>42.6.0</version>
+    </dependency>
+
 
   </dependencies>
 
