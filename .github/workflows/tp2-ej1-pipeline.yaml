@@ -1,0 +1,76 @@
+name: tp2-ej1-maestro-pipeline
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  setup-stage:
+    outputs:
+      env-name: ${{ steps.env-name.outputs.env }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Environment Name
+        id: env-name
+        run: echo "env=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+
+  TFInstall:
+    needs: [setup-stage] 
+    runs-on: ubuntu-latest
+    environment: 
+      name: ${{ needs.setup-stage.outputs.env-name }}
+    env:
+      name: ${{ needs.setup-stage.outputs.env-name }}
+      PORT: ${{ secrets.PORT }}
+      CLIENT_ORIGIN_URL: ${{ secrets.CLIENT_ORIGIN_URL }}
+      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+      AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+    
+      # Instala y configura Terraform CLI para ser utilizado con un proveedor de servicios en la nube.
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # Inicializa un nuevo o existente directorio de trabajo.
+      - name: Terraform init
+        working-directory: tp02/ej1/maestro/terraform
+        run: |
+          ls -lah
+          bucket_name="tf-state"
+          prefix="gke/state"
+          terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix 
+          terraform validate
+          terraform plan -lock=false
+          terraform apply -lock=false --auto-approve
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          
+  K8sDeploy:
+    needs: [TFInstall]  
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.setup-stage.outputs.env-name }} 
+    env:
+      name: ${{ needs.setup-stage.outputs.env-name }}
+      PORT: ${{ secrets.PORT }}
+      CLIENT_ORIGIN_URL: ${{ secrets.CLIENT_ORIGIN_URL }}
+      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+      AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    steps:
+      # Checkout
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Instalación de kubernetes CLI.
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          kubectl version --client
