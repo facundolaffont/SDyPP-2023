@@ -37,7 +37,6 @@ jobs:
         working-directory: tp02/ej1/maestro/terraform
         run: |
           ls -lah
-          bucket_name="tf-state"
           prefix="gke/state"
           terraform init --reconfigure \
           --backend-config prefix=$prefix
@@ -47,22 +46,22 @@ jobs:
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           
-  K8sDeploy:
-    needs: [TFInstall]  
-    runs-on: ubuntu-latest
-    environment:
-      name: ${{ needs.setup-stage.outputs.env-name }} 
-    env:
-      name: ${{ needs.setup-stage.outputs.env-name }}
-      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-    steps:
-      # Checkout.
-      - name: Checkout code
-        uses: actions/checkout@v3
+  # K8sDeploy:
+  #   needs: [TFInstall]  
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: ${{ needs.setup-stage.outputs.env-name }} 
+  #   env:
+  #     name: ${{ needs.setup-stage.outputs.env-name }}
+  #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  #   steps:
+  #     # Checkout.
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
 
-      # Instalación de kubernetes CLI.
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-          kubectl version --client
+  #     # Instalación de kubernetes CLI.
+  #     - name: Install kubectl
+  #       run: |
+  #         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  #         sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+  #         kubectl version --client
