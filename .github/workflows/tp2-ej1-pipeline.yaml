@@ -31,6 +31,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
     
+    
       # Instala y configura Terraform CLI para ser utilizado con un proveedor de servicios en la nube.
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
