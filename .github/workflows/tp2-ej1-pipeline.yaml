@@ -36,7 +36,7 @@ jobs:
         working-directory: tp02/ej1/maestro/terraform
         run: |
           ls -lah
-          bucket_name="unlu-tf-state"
+          bucket_name="unlu-tf"
           prefix="gke/state"
           terraform init --reconfigure \
           --backend-config bucket=$bucket_name \
