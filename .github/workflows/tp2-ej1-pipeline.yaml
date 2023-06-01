@@ -26,7 +26,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-    
 
       # Instala y configura Terraform CLI para ser utilizado con un proveedor de servicios en la nube.
       - name: Setup Terraform
@@ -37,8 +36,10 @@ jobs:
         working-directory: tp02/ej1/maestro/terraform
         run: |
           ls -lah
+          bucket_name="unlu-tf-state"
           prefix="gke/state"
           terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
           --backend-config prefix=$prefix
           terraform validate
           terraform plan -lock=false
