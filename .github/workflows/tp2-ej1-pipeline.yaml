@@ -22,7 +22,7 @@ jobs:
       name: ${{ needs.setup-stage.outputs.env-name }}
     env:
       name: ${{ needs.setup-stage.outputs.env-name }}
-      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALSS }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -45,7 +45,7 @@ jobs:
           terraform plan -lock=false
           terraform apply -lock=false --auto-approve
         env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALSS }}
           
   # K8sDeploy:
   #   needs: [TFInstall]  
@@ -54,7 +54,7 @@ jobs:
   #     name: ${{ needs.setup-stage.outputs.env-name }} 
   #   env:
   #     name: ${{ needs.setup-stage.outputs.env-name }}
-  #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALSS }}
   #   steps:
   #     # Checkout.
   #     - name: Checkout code
