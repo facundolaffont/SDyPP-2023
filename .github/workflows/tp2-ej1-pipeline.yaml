@@ -1,27 +1,32 @@
 name: tp2-ej1-maestro-pipeline
 
 on:
-  push:
-    branches:
-      - dev
+  issues:
+    types:
+      - opened
+
+env:
+  TERRAFORM_INIT_ISSUE_TITLE: 'Terraform init'
 
 jobs:
-  setup-stage:
+  setup:
+    if: ${{ contains(github.event.issue.title, $TERRAFORM_INIT_ISSUE_TITLE) }}
     outputs:
       env-name: ${{ steps.env-name.outputs.env }}
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Environment Name
+      - name: Setup environment name
         id: env-name
         run: echo "env=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
-  TFInstall:
-    needs: [setup-stage] 
+  terraform-install:
+    if: ${{ contains(github.event.issue.title, $TERRAFORM_INIT_ISSUE_TITLE) }}
+    needs: [setup] 
     runs-on: ubuntu-latest
     environment: 
-      name: ${{ needs.setup-stage.outputs.env-name }}
+      name: ${{ needs.setup.outputs.env-name }}
     env:
-      name: ${{ needs.setup-stage.outputs.env-name }}
+      name: ${{ needs.setup.outputs.env-name }}
       GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
     steps:
       - name: Checkout code
@@ -43,18 +48,50 @@ jobs:
           --backend-config prefix=$prefix
           terraform validate
           # terraform plan -lock=false
-          terraform destroy -lock=false --auto-approve
           # terraform apply -lock=false --auto-approve
+          terraform destroy -lock=false --auto-approve
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+  terraform-destroy:
+    if: ${{ contains(github.event.issue.title, $TERRAFORM_DESTROY_ISSUE_TITLE) }}
+    needs: [setup] 
+    runs-on: ubuntu-latest
+    environment: 
+      name: ${{ needs.setup.outputs.env-name }}
+    env:
+      name: ${{ needs.setup.outputs.env-name }}
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Instala y configura Terraform CLI para ser utilizado con un proveedor de servicios en la nube.
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # Inicializa un nuevo o existente directorio de trabajo.
+      - name: Terraform destroy
+        working-directory: tp02/ej1/maestro/terraform
+        run: |
+          ls -lah
+          bucket_name="unlu-tf"
+          prefix="gke/state"
+          terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
+          terraform validate
+          terraform destroy -lock=false --auto-approve
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           
   # K8sDeploy:
-  #   needs: [TFInstall]  
+  #   needs: [terraform-install]  
   #   runs-on: ubuntu-latest
   #   environment:
-  #     name: ${{ needs.setup-stage.outputs.env-name }} 
+  #     name: ${{ needs.setup.outputs.env-name }} 
   #   env:
-  #     name: ${{ needs.setup-stage.outputs.env-name }}
+  #     name: ${{ needs.setup.outputs.env-name }}
   #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
   #   steps:
   #     # Checkout.
