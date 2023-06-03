@@ -2,8 +2,7 @@ name: tp2-ej1-maestro-pipeline
 
 on:
   issues:
-    types:
-      - opened
+    types: [opened]
 
 env:
   TERRAFORM_INIT_ISSUE_TITLE: 'Terraform init'
