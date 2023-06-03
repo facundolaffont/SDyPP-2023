@@ -1,5 +1,5 @@
 # Sistemas Distribuidos y Programación Paralela
- 
+
 Trabajos prácticos de la asignatura Sistemas Distribuidos y Programación Paralela, de la carrera de Licenciatura en Sistemas de Información de la Universidad Nacional de Luján.
 
 ## Integrantes
