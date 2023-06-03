@@ -4,12 +4,12 @@ on:
   issues:
     types: [opened]
 
-env:
-  TERRAFORM_INIT_ISSUE_TITLE: 'Terraform init'
+# env:
+#   TERRAFORM_INIT_ISSUE_TITLE: 'Terraform init'
 
 jobs:
   setup:
-    if: ${{ contains(github.event.issue.title, $TERRAFORM_INIT_ISSUE_TITLE) }}
+    if: ${{ contains(github.event.issue.title, 'Terraform init') }}
     outputs:
       env-name: ${{ steps.env-name.outputs.env }}
     runs-on: ubuntu-latest
@@ -19,7 +19,7 @@ jobs:
         run: echo "env=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
   terraform-install:
-    if: ${{ contains(github.event.issue.title, $TERRAFORM_INIT_ISSUE_TITLE) }}
+    if: ${{ contains(github.event.issue.title, 'Terraform init') }}
     needs: [setup] 
     runs-on: ubuntu-latest
     environment: 
@@ -53,7 +53,7 @@ jobs:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
   terraform-destroy:
-    if: ${{ contains(github.event.issue.title, $TERRAFORM_DESTROY_ISSUE_TITLE) }}
+    if: ${{ contains(github.event.issue.title, 'Terraform destroy') }}
     needs: [setup] 
     runs-on: ubuntu-latest
     environment: 
