@@ -42,8 +42,9 @@ jobs:
           --backend-config bucket=$bucket_name \
           --backend-config prefix=$prefix
           terraform validate
-          terraform plan -lock=false
-          terraform apply -lock=false --auto-approve
+          # terraform plan -lock=false
+          terraform destory --auto-approve
+          # terraform apply -lock=false --auto-approve
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           
