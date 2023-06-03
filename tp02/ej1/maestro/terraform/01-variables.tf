@@ -8,12 +8,7 @@ variable "zone" {
   default = "us-central1-a"
 }
 
-/* variable "credentials_file_path" {
-  description = "Path to GCP service account credentials file"
-  default     = "./terraform.json"
-} */
-
 variable "project_id" {
   type    = string
-  default = "sd-2023-384422"
+  default = "heroic-night-388500"
 }
