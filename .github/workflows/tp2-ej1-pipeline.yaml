@@ -9,7 +9,7 @@ on:
 
 jobs:
   setup:
-    if: ${{ contains(github.event.issue.title, 'Terraform init') }}
+    if: contains(github.event.issue.title, 'Terraform init')
     outputs:
       env-name: ${{ steps.env-name.outputs.env }}
     runs-on: ubuntu-latest
@@ -19,7 +19,7 @@ jobs:
         run: echo "env=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
   terraform-install:
-    if: ${{ contains(github.event.issue.title, 'Terraform init') }}
+    if: contains(github.event.issue.title, 'Terraform init')
     needs: [setup] 
     runs-on: ubuntu-latest
     environment: 
@@ -53,7 +53,7 @@ jobs:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
   terraform-destroy:
-    if: ${{ contains(github.event.issue.title, 'Terraform destroy') }}
+    if: contains(github.event.issue.title, 'Terraform destroy')
     needs: [setup] 
     runs-on: ubuntu-latest
     environment: 
