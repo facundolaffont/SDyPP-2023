@@ -25,12 +25,9 @@ resource "google_container_cluster" "primary" {
   }
 
   release_channel {
+    # https://cloud.google.com/kubernetes-engine/docs/concepts/release-channels?hl=es-419
     channel = "RAPID"
   }
-  # rapid antes
-  # regular normal
-  # stable cuando está re estable
-  # manual 
 
   workload_identity_config {
     workload_pool = "${var.project_id}.svc.id.goog"
