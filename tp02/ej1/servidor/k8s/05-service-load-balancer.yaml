@@ -1,0 +1,18 @@
+# https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: maestro-service
+
+# https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/#ServiceSpec
+spec:
+  type: LoadBalancer
+  selector:
+    name: maestro-pod
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  # Permite utilizar cabeceras HTTP personalizadas.
+  externalTrafficPolicy: Local

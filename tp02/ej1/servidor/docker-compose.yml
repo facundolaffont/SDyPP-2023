@@ -1,0 +1,32 @@
+name: tp2-ej1-maestro
+services:
+
+  maestro:
+    build: server/.
+    image: facundol/tp2-ej1-maestro:latest
+    ports:
+      - 8080:8080/tcp
+    container_name: maestro
+    depends_on:
+      - bd-postgres
+    networks:
+      - red-contenedores
+
+  bd-postgres:
+    image: postgres:13.11-bullseye
+    restart: always
+    ports:
+      - 5432:5432/tcp
+    container_name: bd-postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./bd/init.sql:/docker-entrypoint-initdb.d/init.sql
+    env_file:
+      - bd/postgres-variables.env
+    networks:
+      - red-contenedores
+
+networks:
+  red-contenedores:
+volumes:
+  postgres-data:

@@ -8,7 +8,7 @@ searchBtn.addEventListener("click", function() {
     if (searchValue) {
         searchBtn.disabled = true;
         result.innerHTML = "";
-        fetch("http://localhost:8080/query?search=" + searchValue)
+        fetch(getUrlForFetch("/query?search=" + searchValue))
             .then(response => response.text())
             .then(response => {
                 switch (response.split("=", 1)[0]) {
@@ -33,7 +33,7 @@ disconnectBtn.addEventListener("click", function() {
     if (confirm("¿Estás seguro que quieres desconectarte? Se cancelará cualquier"
             + " transferencia en curso.")) {
         // Da aviso a los nodos maestros.
-        fetch("http://localhost:8080/disconnect");
+        fetch(getUrlForFetch("/disconnect"));
         // Muestra mensaje en el front.
         document.getElementById("connected-panel").classList.add("d-none");
         document.getElementById("disconnected-panel").classList.remove("d-none");
@@ -62,7 +62,8 @@ function buildTable(json) {
                + "  <th scope=\"row\">" + file.name + "</th>"
                + "  <td>" + file.sizeInBytes + "</td>"
                + "  <td>" + file.host + "</td>"
-               + "  <td><button type=\"button\" onclick=\"downloadFile(\"" + file.host + "\", \"" + file.name + "\")\">Descargar</button></td>"
+               + "  <td><button type=\"button\" onclick=\"downloadFile('"
+               + file.host + "', '" + file.name + "')\">Descargar</button></td>"
                + "</tr>";
     });
     table += "</tbody></table>";
@@ -75,6 +76,19 @@ function buildTable(json) {
  * @param {string} name Nombre del archivo solicitado.
  */
 function downloadFile(host, name) {
-    fetch("http://" + host + ":8080/download?name=" + name);
-    /** @TODO Guardar archivo, renombrar, mostrar estado de descarga, etc. */
+    fetch("http://" + host + ":8080/download?name=" + name)
+        .then(response => response.blob())
+        .then(blob => {
+            saveAs(blob, name);
+        });
+}
+
+/**
+ * Retorna la URL de la instancia del nodo extremo para los fetchs.
+ * @param {string} endpoint Endpoint del controlador del nodo extremo.
+ * @returns {string}
+ */
+function getUrlForFetch(endpoint) {
+    const { protocol, hostname, port } = window.location;
+    return `${protocol}//${hostname}${port ? `:${port}` : ""}${endpoint}`;
 }

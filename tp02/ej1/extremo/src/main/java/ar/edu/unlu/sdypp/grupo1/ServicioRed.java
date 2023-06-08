@@ -1,6 +1,9 @@
 package ar.edu.unlu.sdypp.grupo1;
 
 import org.json.JSONObject;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -38,7 +41,10 @@ public class ServicioRed {
      */
     public ResponseEntity<String> postRequest(String url, JSONObject body) throws RestClientException {
         String json = body == null ? null : body.toString();
-        return this.client.postForEntity(url, json, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> httpEntity = new HttpEntity<>(json, headers);
+        return this.client.postForEntity(url, httpEntity, String.class);
     }
 
     /**

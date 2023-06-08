@@ -2,6 +2,8 @@ package ar.edu.unlu.sdypp.grupo1;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -60,21 +62,26 @@ public class Controlador {
 
     /**
      * Transfiere un archivo compartido solicitado por otro nodo extremo.
-     * @param search Nombre del archivo solicitado.
-     * @return Archivo binario solicitado.
+     * @param name Nombre del archivo solicitado.
+     * @return Archivo solicitado.
      * @throws Exception Si se produce algún error al leer el archivo.
      */
     @GetMapping("/download")
-    public ResponseEntity<FileSystemResource> download(@RequestParam("name") String name) throws Exception {
+    public ResponseEntity<Resource> download(@RequestParam("name") String name) throws Exception {
         File file = this.extreme.getFile(name);
-        if (!file.exists() || !file.isFile() || file.isHidden()) {
+        Resource resource = new FileSystemResource(file);
+        // Verifica que el archivo exista y pueda ser leído.
+        if (!resource.exists() || !resource.isFile() || !resource.isReadable()) {
             // Error 404.
             return ResponseEntity.notFound().build();
         }
+        // Determina el tipo MIME del archivo.
+        String mime = Files.probeContentType(Paths.get(file.getPath()));
+        if (mime == null) mime = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        // Instancia los headers.
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentType(MediaType.parseMediaType(mime));
         headers.setContentDispositionFormData("attachment", name);
-        FileSystemResource resource = new FileSystemResource(file);
         return ResponseEntity.ok().headers(headers).body(resource);
     }
 
