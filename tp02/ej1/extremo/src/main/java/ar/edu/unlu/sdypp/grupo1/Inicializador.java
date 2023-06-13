@@ -40,16 +40,19 @@ public class Inicializador implements CommandLineRunner {
             System.exit(1);
         }
         // Informa la existencia del nodo a los maestros.
+        System.out.println("Informándose a los nodos maestros...");
         if (!this.extreme.inform()) {
             System.err.println("No se pudo comunicar con ningún nodo maestro.");
             System.exit(1);
         }
         // Intenta abrir el puerto 8080 al exterior.
         try {
+            System.out.println("Intentando abrir el puerto 8080 al exterior...");
             UPnP.openPort();
         } catch (Exception e) {
             // No hace nada. Se utiliza el programa sin abrir el puerto externo.
         }
+        System.out.println("Aplicación iniciada.");
         // Abre un bucle infinito para reportarse cada cierto tiempo.
         while (true) {
             Thread.sleep(Extremo.INFORM_INTERVAL);

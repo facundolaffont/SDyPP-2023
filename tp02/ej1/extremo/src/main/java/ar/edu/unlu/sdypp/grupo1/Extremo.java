@@ -65,7 +65,7 @@ public class Extremo {
         for (String master : this.mastersIPs) {
             try {
                 ResponseEntity<String> response = this.networkService.postRequest(
-                    String.format("http://%s:8080/inform", master),
+                    String.format("http://%s/inform", master),
                     body
                 );
                 return response.getStatusCode().is2xxSuccessful();
@@ -88,7 +88,7 @@ public class Extremo {
         for (String master : this.mastersIPs) {
             try {
                 ResponseEntity<String> response = this.networkService.getRequest(
-                    String.format("http://%s:8080/query?file=%s", master, search)
+                    String.format("http://%s/query?file=%s", master, search)
                 );
                 if (response.getStatusCode().is2xxSuccessful()) {
                     return response.getBody();
@@ -121,7 +121,7 @@ public class Extremo {
     public void disconnect() {
         for (String master : this.mastersIPs) {
             try {
-                this.networkService.postRequest(String.format("http://%s:8080/exit", master));
+                this.networkService.postRequest(String.format("http://%s/exit", master));
                 return;
             } catch (RestClientException e) {
                 // Falló la petición, se intentará con el siguiente nodo maestro.
