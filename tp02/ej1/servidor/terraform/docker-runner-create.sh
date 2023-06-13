@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Ejecutar preferentemente desde una consola que no esté integrada en
+# Visual Studio Code, para poder escuchar el bucle de beep final.
+
+source .env
+
 if [ -z $user_email ]
 then
 
@@ -40,4 +45,9 @@ else
     # Terraform apply.
     echo "Terraform apply..."
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp apply --auto-approve -lock=false
+
+    # Ejecuta el beep de consola de manera indefinida hasta terminar
+    # manualmente el script.
+    while true; do printf "\a"; done
+    
 fi

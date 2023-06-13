@@ -400,28 +400,30 @@ public class Maestro {
         
         logger.debug("Se ejecuta el método getSourceIp.");
 
-        // Verifica que exista el header 'X-Forwarded-For'.
-        String clientIp = httpServletRequest.getHeader("X-Forwarded-For");
-        logger.debug(String.format(
-            "httpServletRequest.getHeader(\"X-Forwarded-For\") = %s",
-            clientIp
-        ));
-        if (clientIp != null && !clientIp.isEmpty()) {
+        // // Verifica que exista el header 'X-Forwarded-For'.
+        // String clientIp = httpServletRequest.getHeader("X-Forwarded-For");
+        // logger.debug(String.format(
+        //     "httpServletRequest.getHeader(\"X-Forwarded-For\") = %s",
+        //     clientIp
+        // ));
+        // if (clientIp != null && !clientIp.isEmpty()) {
             
-            // Dado que el header puede contener más de un IP, separados por coma,
-            // y que la primera IP es la que se busca, se parsea.
-            clientIp = clientIp.split(",")[0].trim();
+        //     // Dado que el header puede contener más de un IP, separados por coma,
+        //     // y que la primera IP es la que se busca, se parsea.
+        //     clientIp = clientIp.split(",")[0].trim();
 
-        } else {
+        // } else {
 
-            // No existe el header 'X-Forwarded-For' o está vacío.
-            clientIp =
-                clientIp != null
-                ? clientIp = null
-                : clientIp;
+        //     // No existe el header 'X-Forwarded-For' o está vacío.
+        //     clientIp =
+        //         clientIp != null
+        //         ? clientIp = null
+        //         : clientIp;
 
-        }
+        // }
 
+        String clientIp = httpServletRequest.getRemoteHost();
+        
         logger.debug(String.format(
             "Se devuelve clienteIp. [%s]",
             clientIp
