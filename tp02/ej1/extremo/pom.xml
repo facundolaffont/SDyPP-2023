@@ -30,6 +30,11 @@
       <artifactId>json</artifactId>
       <version>20230227</version>
     </dependency>
+    <dependency>
+      <groupId>org.bitlet</groupId>
+      <artifactId>weupnp</artifactId>
+      <version>0.1.4</version>
+    </dependency>
   </dependencies>
   <build>
     <pluginManagement>
