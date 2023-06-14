@@ -1,0 +1,109 @@
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+
+name: tp2-ej1-actions
+run-name: TP2 - EJ1 (@${{ github.triggering_actor }})
+
+on:
+  push:
+    branches:
+      - pipeline-actions
+
+jobs:
+  terraform-init:
+    name: Terraform init
+    if: contains(github.event.head_commit.message, 'INIT')
+    runs-on: ubuntu-latest
+    environment: pipeline-actions
+    steps:
+
+      # Selecciona la rama para.
+      - name: Checkout code 
+        uses: actions/checkout@v3
+
+      # Instala y configura Terraform CLI.
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # Crea la infraestructura en la nube.
+      - name: Terraform init
+        working-directory: tp02/ej1/servidor/terraform
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: |
+          ls -lah
+
+          bucket_name="unlu-tf"
+
+          prefix="gke/state"
+
+          terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
+
+          terraform validate
+
+          terraform plan -lock=false
+
+          terraform apply -lock=false --auto-approve
+  
+  terraform-destroy:
+    name: Terraform destroy
+    if: contains(github.event.head_commit.message, 'DESTROY')
+    runs-on: ubuntu-latest
+    environment: pipeline-actions
+    steps:
+
+      # Selecciona la rama para.
+      - name: Checkout code 
+        uses: actions/checkout@v3
+
+      # Instala y configura Terraform CLI.
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # Crea la infraestructura en la nube.
+      - name: Terraform destroy
+        working-directory: tp02/ej1/servidor/terraform
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: |
+          ls -lah
+
+          bucket_name="unlu-tf"
+
+          prefix="gke/state"
+
+          terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
+
+          terraform destroy -lock=false --auto-approve
+
+  k8s-deploy:
+    name: Kubernetes deployment
+    if: contains(github.event.head_commit.message, 'DEPLOY')
+    runs-on: ubuntu-latest
+    environment: pipeline-actions
+    steps:
+
+      # Checkout.
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Instala la CLI de Kubernetes.
+      - name: Install kubectl
+        working-directory: tp02/ej1/servidor/k8sd                                                                                                                                          
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+          kubectl version --client
+      
+      # Despliega los objectos en la nube.
+      - name: Deploy
+        working-directory: tp02/ej1/servidor/k8sd                                                                                                                                          
+        run: |
+          echo "OK"
+
+          # TODO: crear los secretos en Kubernetes y desplegar los objetos.
