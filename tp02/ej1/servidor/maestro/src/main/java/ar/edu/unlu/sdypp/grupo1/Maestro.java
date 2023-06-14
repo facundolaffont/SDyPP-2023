@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ar.edu.unlu.sdypp.grupo1.requests.FileDescriptionRequest;
 import ar.edu.unlu.sdypp.grupo1.requests.InformRequest;
-import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.http.HttpServletRequest;
 
 @SpringBootApplication
@@ -39,10 +38,9 @@ public class Maestro {
     public Maestro() {
 
         // Carga las variables de entorno.
-        dotenv = Dotenv.configure().load();
-        postgresUrl = dotenv.get("POSTGRES_URL");
-        postgresUser = dotenv.get("POSTGRES_USER");
-        postgresPassword = dotenv.get("POSTGRES_PASSWORD");
+        postgresUrl = System.getenv("POSTGRES_URL");
+        postgresUser = System.getenv("POSTGRES_USER");
+        postgresPassword = System.getenv("POSTGRES_PASSWORD");
 
         // Configura la frecuencia que tendrá la revisión de los
         // extremos que no actualizaron sus conexiones (2 minutos).
@@ -389,7 +387,6 @@ public class Maestro {
     /* Private */
     
     private static final Logger logger = LoggerFactory.getLogger(Maestro.class);
-    final Dotenv dotenv;
     Connection postgresConnection;
     String postgresUrl;
     String postgresUser;

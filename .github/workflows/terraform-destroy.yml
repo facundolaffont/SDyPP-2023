@@ -1,7 +1,7 @@
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 
-name: tp2-ej1-terraform-init
-run-name: Terraform init (@${{ github.triggering_actor }})
+name: tp2-ej1-terraform-destroy
+run-name: Terraform destroy (@${{ github.triggering_actor }})
 
 on:
   push:
@@ -9,9 +9,9 @@ on:
       - pipeline-actions
 
 jobs:
-  terraform-init:
-    name: Terraform init
-    if: contains(github.event.head_commit.message, 'INIT')
+  terraform-destroy:
+    name: Terraform destroy
+    if: contains(github.event.head_commit.message, 'DESTROY')
     runs-on: ubuntu-latest
     environment: pipeline-actions
     steps:
@@ -25,7 +25,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       # Crea la infraestructura en la nube.
-      - name: Terraform init
+      - name: Terraform destroy
         working-directory: tp02/ej1/servidor/terraform
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
@@ -40,8 +40,4 @@ jobs:
           --backend-config bucket=$bucket_name \
           --backend-config prefix=$prefix
 
-          terraform validate
-
-          terraform plan -lock=false
-
-          terraform apply -lock=false --auto-approve
+          terraform destroy -lock=false --auto-approve
