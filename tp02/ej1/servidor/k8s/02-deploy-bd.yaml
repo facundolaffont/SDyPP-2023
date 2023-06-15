@@ -39,22 +39,13 @@ spec:
           value: "5432"
         - name: "POSTGRES_HOST_AUTH_METHOD"
           value: "trust"
-        # envFrom:
-        # - secretRef:
-        #   name: bd-secrets
 
         volumeMounts:
-        # - name: bd-secret-volume
-        #   mountPath: /app/
-        #   readOnly: true
         - name: sql-init-config-volume
           mountPath: /docker-entrypoint-initdb.d
           readOnly: true
 
       volumes:
-      # - name: bd-secret-volume
-      #   secret:
-      #     secretName: bd-secrets
       - name: sql-init-config-volume
         configMap:
           name: sql-init-configmap

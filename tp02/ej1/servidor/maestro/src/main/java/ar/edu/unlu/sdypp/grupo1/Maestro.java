@@ -41,6 +41,14 @@ public class Maestro {
         postgresUrl = System.getenv("POSTGRES_URL");
         postgresUser = System.getenv("POSTGRES_USER");
         postgresPassword = System.getenv("POSTGRES_PASSWORD");
+        logger.debug(String.format(
+            "POSTGRES_URL=%s\n" +
+            "POSTGRES_USER=%s\n" +
+            "POSTGRES_PASSWORD=%s",
+            postgresUrl,
+            postgresUser,
+            postgresPassword
+        ));
 
         // Configura la frecuencia que tendrá la revisión de los
         // extremos que no actualizaron sus conexiones (2 minutos).
