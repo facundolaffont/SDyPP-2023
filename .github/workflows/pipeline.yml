@@ -92,17 +92,19 @@ jobs:
         uses: actions/checkout@v3
 
       # Configura Google Cloud.
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v1'
+      - name: Google Cloud authentication
+        uses: google-github-actions/auth@v1
         with:
-          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
       - name: Google Cloud SDK setup
         uses: google-github-actions/setup-gcloud@v1
         with:
           version: '>= 363.0.0'
       
       - name: Prueba GCloud
-        run: gcloud info
+        run: |
+          gcloud info
+          kubectl version --short
 
       # # Instala la CLI de Kubernetes.
       # - name: Install kubectl
