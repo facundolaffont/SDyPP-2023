@@ -92,7 +92,7 @@ jobs:
 
       # Instala la CLI de Kubernetes.
       - name: Install kubectl
-        working-directory: tp02/ej1/servidor/k8sd                                                                                                                                          
+        working-directory: tp02/ej1/servidor/k8s
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 
@@ -102,8 +102,20 @@ jobs:
       
       # Despliega los objectos en la nube.
       - name: Deploy
-        working-directory: tp02/ej1/servidor/k8sd                                                                                                                                          
+        working-directory: tp02/ej1/servidor/k8s
         run: |
-          echo "OK"
+          ls -lah
 
-          # TODO: crear los secretos en Kubernetes y desplegar los objetos.
+          kubectl create secret generic bd-secrets \
+          --from-literal=POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+
+          kubectl create secret generic maestro-secrets \
+          --from-literal=POSTGRES_URL=${{ secrets.POSTGRES_URL }} \
+          --from-literal=POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+          --from-literal=POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+
+          files=""
+          for file in 0*.yaml; do
+          files=$files" -f $(echo $file)"
+          done
+          eval "kubectl apply"$files
