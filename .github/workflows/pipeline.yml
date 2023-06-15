@@ -108,8 +108,6 @@ jobs:
 
           gcloud components list
 
-          kubectl version
-
       # # Instala la CLI de Kubernetes.
       # - name: Install kubectl
       #   working-directory: tp02/ej1/servidor/k8s
