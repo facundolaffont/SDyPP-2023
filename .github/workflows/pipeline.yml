@@ -104,7 +104,10 @@ jobs:
       - name: Prueba GCloud
         run: |
           gcloud info
-          kubectl version --short
+          echo ""
+          gcloud components list
+          echo ""
+          kubectl version
 
       # # Instala la CLI de Kubernetes.
       # - name: Install kubectl
