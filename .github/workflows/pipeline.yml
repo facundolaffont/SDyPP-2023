@@ -89,6 +89,10 @@ jobs:
           --from-literal=POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
           --from-literal=POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
 
+          kubectl create secret generic dns-secrets \
+          --from-literal=CF_API_EMAIL=${{ secrets.CF_API_EMAIL }} \
+          --from-literal=CF_API_KEY=${{ secrets.CF_API_KEY }}
+
           files=""
           for file in 0*.yaml; do
           files=$files" -f $(echo $file)"

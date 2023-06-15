@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cloudflare-job
+spec:
+  template:
+    spec:
+      containers:
+        - name: cloudflare-container
+          image: curlimages/curl
+          env:
+          - name: CF_API_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: dns-secrets
+                key: CF_API_EMAIL
+          - name: CF_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: dns-secrets
+                key: CF_API_KEY
+          # command: ...
+          # args: ...
+          
+          ### TODO: Iterar hasta que el IP del LoadBalancer esté disponible, y guardarlo en variable de entorno $APP_IP ###
+
+          ### Crear el registro DNS. ###
+
+          # DOMAIN=fl.com.ar
+          # RECORD=www.fl.com.ar
+
+          # # Obtener el ID de la zona de Cloudflare.
+          # ZONE_ID=$(curl -X GET \
+          # --url "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN" \
+          # -H 'Content-Type: application/json' \
+          # -H 'X-Auth-Email: $CF_API_EMAIL' \
+          # -H 'X-Auth-Key: $CF_API_KEY' | sed 's/.*\[{"id":"\([^"]*\)".*/\1/')
+
+          # # Obtener el ID del registro DNS.
+          # RECORD_ID=$(curl -X GET \
+          # --url "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?name=$RECORD" \
+          # -H 'Content-Type: application/json' \
+          # -H 'X-Auth-Email: $CF_API_EMAIL' \
+          # -H "X-Auth-Key: $CF_API_KEY" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+
+          # # Crear el registro de DNS.
+          # curl --request POST \
+          #   --url https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records \
+          #   --header 'Content-Type: application/json' \
+          #   --header 'X-Auth-Email: $CF_API_EMAIL' \
+          #   --header 'X-Auth-Key: $CF_API_KEY' \
+          #   --data '{
+          #   "content": "$APP_IP",
+          #   "name": "app",
+          #   "proxied": true,
+          #   "type": "A",
+          #   "comment": "",
+          #   "tags": [],
+          #   "ttl": 3600
+          # }'
+
+          # # Borrar el registro DNS.
+          # curl -X DELETE \
+          # --url "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
+          # -H 'Content-Type: application/json' \
+          # -H 'X-Auth-Email: $CF_API_EMAIL' \
+          # -H "X-Auth-Key: $CF_API_KEY"
+
+      restartPolicy: Never
+  backoffLimit: 4
