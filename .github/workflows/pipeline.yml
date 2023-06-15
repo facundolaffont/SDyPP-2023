@@ -102,11 +102,13 @@ jobs:
           version: '>= 363.0.0'
           install_components: 'kubectl'
       
-      - name: Prueba GCloud
+      - name: GCloud config
         run: |
           gcloud info
 
           gcloud components list
+
+          gcloud container clusters get-credentials primary --region=us-central1-a
 
       # # Instala la CLI de Kubernetes.
       # - name: Install kubectl
