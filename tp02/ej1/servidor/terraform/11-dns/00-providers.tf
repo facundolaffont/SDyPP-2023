@@ -44,6 +44,7 @@ provider "google" {
 
 # Define el proveedor de Cloudflare para crear los registros que permitirán resolver el nombre de dominio,
 # devolviendo la IP pública del balanceador de cargas.
-# provider "cloudflare" {
-#   api_token = var.cf_api_key
-# }
+provider "cloudflare" {
+  api_key = var.CLOUDFLARE_API_KEY
+  email = var.CLOUDFLARE_EMAIL
+}

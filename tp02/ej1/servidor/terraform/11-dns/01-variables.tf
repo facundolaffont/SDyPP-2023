@@ -13,6 +13,19 @@ variable "project_id" {
   default = "heroic-night-388500"
 }
 
+variable "LOADBALANCER_IP" {
+  type = string
+}
+variable "CLOUDFLARE_EMAIL" {
+  type = string
+}
+variable "CLOUDFLARE_API_KEY" {
+  type = string
+}
+variable "GOOGLE_CREDENTIALS" {
+  type = string
+}
+
 # Obtiene la información de la zona del dominio de Cloudflare.
 data "cloudflare_zone" "app" {
   name = "fl.com.ar"
