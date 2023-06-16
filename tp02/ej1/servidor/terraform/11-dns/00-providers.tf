@@ -9,10 +9,10 @@ terraform {
       version = "~> 4.0"
     }
 
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.21.1"
-    }
+    # kubernetes = {
+    #   source  = "hashicorp/kubernetes"
+    #   version = "~> 2.21.1"
+    # }
 
     cloudflare = {
       source  = "cloudflare/cloudflare"
@@ -38,9 +38,9 @@ provider "google" {
 
 # Define el proveedor de Kubernetes para poder obtener el servicio que balancea cargas, y asì
 # obtener su IP pública, para asignarla a los servidores de nombre de Cloudflare.
-provider "kubernetes" {
-  cluster_ca_certificate = var.google_credentials
-}
+# provider "kubernetes" {
+#   cluster_ca_certificate = var.google_credentials
+# }
 
 # Define el proveedor de Cloudflare para crear los registros que permitirán resolver el nombre de dominio,
 # devolviendo la IP pública del balanceador de cargas.

@@ -22,8 +22,8 @@ variable "cf_api_key" {
   description = "Clave de API de la cuenta de Cloudflare"
   type = string
 }
-variable "google_credentials" {
-  description = "Credenciales de Google Cloud"
+variable "loadbalancer_ip" {
+  description = "IP pública del balanceador de carga"
   type = string
 }
 
@@ -33,9 +33,9 @@ data "cloudflare_zone" "app" {
 }
 
 # Obtiene el servicio del balanceo de carga.
-data "kubernetes_service" "load_balancer" {
-  metadata {
-    name      = "maestro-service"
-    namespace = "default"
-  }
-}
+# data "kubernetes_service" "load_balancer" {
+#   metadata {
+#     name      = "maestro-service"
+#     namespace = "default"
+#   }
+# }
