@@ -4,7 +4,7 @@ resource "cloudflare_record" "app_loadbalancer" {
   zone_id = data.cloudflare_zone.app
   name    = "app"
   type    = "A"
-  value   = var.loadbalancer_ip
+  value   = var.LOADBALANCER_IP
   ttl     = 300
   proxied = true
 }

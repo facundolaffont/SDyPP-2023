@@ -13,20 +13,6 @@ variable "project_id" {
   default = "heroic-night-388500"
 }
 
-# Variables desde GitHub.
-variable "cf_api_email" {
-  description = "Email de la cuenta de Cloudflare"
-  type = string
-}
-variable "cf_api_key" {
-  description = "Clave de API de la cuenta de Cloudflare"
-  type = string
-}
-variable "loadbalancer_ip" {
-  description = "IP pública del balanceador de carga"
-  type = string
-}
-
 # Obtiene la información de la zona del dominio de Cloudflare.
 data "cloudflare_zone" "app" {
   name = "fl.com.ar"
