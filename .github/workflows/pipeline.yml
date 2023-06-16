@@ -11,6 +11,7 @@ on:
 jobs:
   terraform-init: # INIT
     name: Terraform init
+    if: contains(github.event.head_commit.message, 'UP')
     runs-on: ubuntu-latest
     environment: pipeline-actions
     steps:
@@ -47,6 +48,7 @@ jobs:
           
   k8s-deploy: # DEPLOY
     name: Kubernetes deployment
+    if: contains(github.event.head_commit.message, 'UP')
     needs: terraform-init
     
     runs-on: ubuntu-latest
@@ -100,6 +102,7 @@ jobs:
   
   dns-config: # DNS-UP 
     name: DNS configuration
+    if: contains(github.event.head_commit.message, 'UP')
     needs: k8s-deploy
     runs-on: ubuntu-latest
     environment: pipeline-actions
