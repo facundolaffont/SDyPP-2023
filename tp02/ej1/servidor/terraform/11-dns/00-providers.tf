@@ -42,7 +42,6 @@ provider "kubernetes" {
   cluster_ca_certificate = var.google_credentials
 }
 
-
 # Define el proveedor de Cloudflare para crear los registros que permitirán resolver el nombre de dominio,
 # devolviendo la IP pública del balanceador de cargas.
 # provider "cloudflare" {

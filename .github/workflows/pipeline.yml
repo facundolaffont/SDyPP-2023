@@ -109,6 +109,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Checkout de la rama.
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Configura Google Cloud.
+      - name: Google Cloud authentication
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - name: Google Cloud SDK setup
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: '>= 363.0.0'
+          install_components: 'kubectl'
+      - name: GCloud config
+        run: |
+          gcloud info
+
+          gcloud components list
+
+          gcloud container clusters get-credentials primary --region=us-central1-a
+      
       # Instala y configura Terraform CLI.
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -132,6 +154,10 @@ jobs:
           --backend-config prefix=$prefix
 
           terraform validate
+
+          sudo apt-get install jq
+          
+          echo $(kubectl get -o json service maestro-service | jq .status.loadBalancer.ingress\[0\].ip)
 
           terraform plan \
           -var "CLOUDFLARE_EMAIL=$CF_API_EMAIL" \
