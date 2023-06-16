@@ -39,10 +39,6 @@ provider "google" {
 # Define el proveedor de Kubernetes para poder obtener el servicio que balancea cargas, y asì
 # obtener su IP pública, para asignarla a los servidores de nombre de Cloudflare.
 provider "kubernetes" {
-  config_path    = "~/.kube/config"
-  config_context = "my-context"
-}
-provider "kubernetes" {
   # Optional: Specify the Kubernetes cluster context to use
   # If not provided, it will use the current context configured in your kubeconfig file
   # config_context_override = "my-kubernetes-context"
