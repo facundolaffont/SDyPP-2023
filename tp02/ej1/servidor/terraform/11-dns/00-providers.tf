@@ -39,10 +39,7 @@ provider "google" {
 # Define el proveedor de Kubernetes para poder obtener el servicio que balancea cargas, y asì
 # obtener su IP pública, para asignarla a los servidores de nombre de Cloudflare.
 provider "kubernetes" {
-  load_config_file = false
-  token_credentials {
-    token_file = var.google_credentials
-  }
+  cluster_ca_certificate = var.google_credentials
 }
 
 
