@@ -9,7 +9,7 @@ on:
       - pipeline-actions
 
 jobs:
-  terraform-init:
+  terraform-init: # INIT
     name: Terraform init
     if: contains(github.event.head_commit.message, 'INIT')
     runs-on: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
 
           terraform apply -lock=false --auto-approve
           
-  k8s-deploy:
+  k8s-deploy: # DEPLOY
     name: Kubernetes deployment
     if: contains(github.event.head_commit.message, 'DEPLOY')
     runs-on: ubuntu-latest
@@ -98,7 +98,7 @@ jobs:
           done
           eval "kubectl apply"$files
   
-  dns-config:
+  dns-config: # DNS-UP
     name: DNS configuration
     if: contains(github.event.head_commit.message, 'DNS-UP')
     runs-on: ubuntu-latest
@@ -118,6 +118,8 @@ jobs:
         working-directory: tp02/ej1/servidor/terraform/11-dns
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          CF_API_EMAIL: ${{ secrets.CF_API_EMAIL }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
         run: |
           ls -lah
 
@@ -131,11 +133,15 @@ jobs:
 
           terraform validate
 
-          terraform plan -lock=false
+          terraform plan \
+          -var "CLOUDFLARE_EMAIL=$CF_API_EMAIL" \
+          -var "CLOUDFLARE_API_KEY=$CF_API_KEY" \
+          -var "GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS" \
+          -lock=false
 
           terraform apply -lock=false --auto-approve
   
-  terraform-destroy:
+  terraform-destroy: # DESTROY
     name: Terraform destroy
     if: contains(github.event.head_commit.message, 'DESTROY')
     runs-on: ubuntu-latest
