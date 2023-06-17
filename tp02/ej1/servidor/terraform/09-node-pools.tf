@@ -21,7 +21,7 @@ resource "google_container_node_pool" "spot" {
 
   node_config {
     preemptible  = true
-    machine_type = "e2-small"
+    machine_type = "e2-medium"
 
     labels = {
       team = "devops"
