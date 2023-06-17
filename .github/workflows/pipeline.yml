@@ -338,9 +338,89 @@ jobs:
         done
         eval "kubectl delete"$files
 
-  terraform-destroy-dns: # DESTROY-ALL || DESTROY-DNS
+  terraform-destroy-all: # ALL-DOWN
+    name: Terraform destroy all
+    if: startsWith(github.event.head_commit.message, 'ALL-DOWN')
+    runs-on: ubuntu-latest
+    environment: pipeline-actions
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      CF_API_EMAIL: ${{ secrets.CF_API_EMAIL }}
+      CF_API_KEY: ${{ secrets.CF_API_KEY }}
+    steps:
+
+      # Checkout de la rama.
+      - name: Checkout code 
+        uses: actions/checkout@v3
+
+      # Instala y configura Terraform CLI.
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # Configura Google Cloud.
+      - name: Google Cloud authentication
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - name: Google Cloud SDK setup
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: '>= 363.0.0'
+          install_components: 'kubectl'
+      - name: GCloud config
+        run: |
+          gcloud info
+
+          gcloud components list
+
+          gcloud container clusters get-credentials primary --region=us-central1-a
+
+      # Destruye la infraestructura en la nube.
+      - name: Terraform destroy gke-dns/state
+        working-directory: tp02/ej1/servidor/terraform/11-dns
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: |
+          ls -lah
+
+          bucket_name="unlu-tf"
+
+          prefix="gke-dns/state"
+
+          sudo apt-get install jq
+        
+          LOADBALANCER_IP=$(kubectl get -o json service maestro-service | jq -r .status.loadBalancer.ingress\[0\].ip)
+
+          export TF_VAR_CLOUDFLARE_EMAIL=$CF_API_EMAIL
+          export TF_VAR_CLOUDFLARE_API_KEY=$CF_API_KEY
+          export TF_VAR_GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS
+          export TF_VAR_LOADBALANCER_IP=$LOADBALANCER_IP
+
+          terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
+
+          terraform destroy -lock=false --auto-approve
+      - name: Terraform destroy gke-dns/state
+        working-directory: tp02/ej1/servidor/terraform
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: |
+          ls -lah
+
+          bucket_name="unlu-tf"
+
+          prefix="gke/state"
+
+          terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
+
+          terraform destroy -lock=false --auto-approve
+
+  terraform-destroy-dns: # DESTROY-DNS
     name: Terraform destroy DNS
-    if: startsWith(github.event.head_commit.message, 'DESTROY-ALL') || startsWith(github.event.head_commit.message, 'DESTROY-DNS')
+    if: startsWith(github.event.head_commit.message, 'DESTROY-DNS')
     runs-on: ubuntu-latest
     environment: pipeline-actions
     env:
@@ -402,9 +482,9 @@ jobs:
 
           terraform destroy -lock=false --auto-approve
 
-  terraform-destroy-base: # DESTROY-ALL || DESTROY-BASE 
+  terraform-destroy-base: # DESTROY-BASE 
     name: Terraform destroy base
-    if: startsWith(github.event.head_commit.message, 'DESTROY-ALL') || startsWith(github.event.head_commit.message, 'DESTROY-BASE')
+    if: startsWith(github.event.head_commit.message, 'DESTROY-BASE')
     runs-on: ubuntu-latest
     environment: pipeline-actions
     steps:
