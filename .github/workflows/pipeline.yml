@@ -83,6 +83,7 @@ jobs:
             --from-literal=POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
         fi
         if [[ -z $DNS_SECRETS_OBJ ]]
+        then
           kubectl create secret generic dns-secrets \
             --from-literal=CF_API_EMAIL=${{ secrets.CF_API_EMAIL }} \
             --from-literal=CF_API_KEY=${{ secrets.CF_API_KEY }}
