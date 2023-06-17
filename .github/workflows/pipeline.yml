@@ -157,12 +157,12 @@ jobs:
         
         LOADBALANCER_IP=$(kubectl get -o json service maestro-service | jq -r .status.loadBalancer.ingress\[0\].ip)
 
-        terraform plan \
-        -var "CLOUDFLARE_EMAIL=$CF_API_EMAIL" \
-        -var "CLOUDFLARE_API_KEY=$CF_API_KEY" \
-        -var "GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS" \
-        -var "LOADBALANCER_IP=$LOADBALANCER_IP" \
-        -lock=false
+        export TF_VAR_CLOUDFLARE_EMAIL=$CF_API_EMAIL
+        export TF_VAR_CLOUDFLARE_API_KEY=$CF_API_KEY
+        export TF_VAR_GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS
+        export TF_VAR_LOADBALANCER_IP=$LOADBALANCER_IP
+
+        terraform plan -lock=false
 
         terraform apply -lock=false --auto-approve
   
