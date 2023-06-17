@@ -62,3 +62,26 @@ spec:
         operator: Equal
         value: spot
         effect: NoSchedule
+      
+      # https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling:~:text=affinity
+      affinity:
+
+        # https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#NodeAffinity
+        #
+        # El siguiente código permite que el pod sea desplegado en un nodo matcheado por 'matchExpressions'.
+        nodeAffinity:
+
+          # https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#NodeAffinity:~:text=requiredDuringSchedulingIgnoredDuringExecution
+          requiredDuringSchedulingIgnoredDuringExecution:
+
+            # https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#NodeAffinity:~:text=requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms
+            nodeSelectorTerms:
+
+            # https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#NodeAffinity:~:text=requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.matchExpressions
+            - matchExpressions:
+
+              # https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/node-selector-requirement/#NodeSelectorRequirement
+              - key: team
+                operator: In
+                values:
+                - devops
