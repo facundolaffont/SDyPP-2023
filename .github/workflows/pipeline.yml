@@ -24,24 +24,6 @@ jobs:
     - name: Terraform setup
       uses: hashicorp/setup-terraform@v2
 
-    # Configura Google Cloud.
-    - name: Google Cloud authentication
-      uses: google-github-actions/auth@v1
-      with:
-        credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
-    - name: Google Cloud SDK setup
-      uses: google-github-actions/setup-gcloud@v1
-      with:
-        version: '>= 363.0.0'
-        install_components: 'kubectl'
-    - name: GCloud config
-      run: |
-        gcloud info
-
-        gcloud components list
-
-        gcloud container clusters get-credentials primary --region=us-central1-a
-  
     # Crea la infraestructura en la nube.
     - name: Terraform init
       working-directory: tp02/ej1/servidor/terraform
@@ -63,7 +45,25 @@ jobs:
         terraform plan -lock=false
 
         terraform apply -lock=false --auto-approve
+    
+    # Configura Google Cloud.
+    - name: Google Cloud authentication
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+    - name: Google Cloud SDK setup
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        version: '>= 363.0.0'
+        install_components: 'kubectl'
+    - name: GCloud config
+      run: |
+        gcloud info
 
+        gcloud components list
+
+        gcloud container clusters get-credentials primary --region=us-central1-a
+  
     # Despliega los objectos en la nube.
     - name: Kubernetes deploy
       working-directory: tp02/ej1/servidor/k8s
