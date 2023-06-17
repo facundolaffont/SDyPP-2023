@@ -400,7 +400,7 @@ jobs:
 
           terraform destroy -lock=false --auto-approve
 
-  terraform-destroy-base: # DESTROY-ALL || DESTROY-BASE
+  terraform-destroy-base: # DESTROY-ALL || DESTROY-BASE 
     name: Terraform destroy base
     if: startsWith(github.event.head_commit.message, 'DESTROY-ALL') || startsWith(github.event.head_commit.message, 'DESTROY-BASE')
     runs-on: ubuntu-latest
