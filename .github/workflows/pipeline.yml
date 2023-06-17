@@ -99,9 +99,9 @@ jobs:
         done
         eval "kubectl apply"$files
   
-  dns-config: # UP || DNS-UP 
+  dns-config: # UP || DNS
     name: DNS configuration
-    if: contains(github.event.head_commit.message, 'UP') || contains(github.event.head_commit.message, 'DNS-UP')
+    if: contains(github.event.head_commit.message, 'UP') || contains(github.event.head_commit.message, 'DNS')
     needs: k8s-deploy
     runs-on: ubuntu-latest
     environment: pipeline-actions
