@@ -109,20 +109,20 @@ jobs:
         
         until 
           kubectl get service maestro-service
-        ; do
+        do
           echo ""
           echo "El servicio del maestro no está activo aún..."
           echo ""
-        ; done
+        done
 
         while 
-          LOADBALANCER_IP=$(kubectl get -o json service maestro-service | jq -r .status.loadBalancer.ingress\[0\].ip);
+          LOADBALANCER_IP=$(kubectl get -o json service maestro-service | jq -r .status.loadBalancer.ingress\[0\].ip)
           [ $LOADBALANCER_IP = null ]
-        ; do
+        do
           echo ""
           echo "Todavía no se pudo obtener la IP pública del balanceador de cargas..."
           echo ""
-        ; done
+        done
 
         echo ""
         echo "IP pública del balanceador de cargas = $LOADBALANCER_IP."
