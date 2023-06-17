@@ -100,6 +100,13 @@ jobs:
           done
           eval "kubectl apply"$files
   
+  # k8s-destroy: # K8S-CLEAN
+  #   name: Kubernetes object cleanning
+  #   if: contains(github.evet.head_commit.message, 'INIT')
+  #   runs-on: ubuntu-latest
+  #   environment: pipeline-actions
+  #   steps:
+  
   dns-config: # DNS-UP 
     name: DNS configuration
     if: contains(github.event.head_commit.message, 'UP')
@@ -108,64 +115,64 @@ jobs:
     environment: pipeline-actions
     steps:
 
-      # Checkout de la rama.
-      - name: Checkout code
-        uses: actions/checkout@v3
+    # Checkout de la rama.
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      # Configura Google Cloud.
-      - name: Google Cloud authentication
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
-      - name: Google Cloud SDK setup
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          version: '>= 363.0.0'
-          install_components: 'kubectl'
-      - name: GCloud config
-        run: |
-          gcloud info
+    # Configura Google Cloud.
+    - name: Google Cloud authentication
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+    - name: Google Cloud SDK setup
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        version: '>= 363.0.0'
+        install_components: 'kubectl'
+    - name: GCloud config
+      run: |
+        gcloud info
 
-          gcloud components list
+        gcloud components list
 
-          gcloud container clusters get-credentials primary --region=us-central1-a
-      
-      # Instala y configura Terraform CLI.
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        gcloud container clusters get-credentials primary --region=us-central1-a
+    
+    # Instala y configura Terraform CLI.
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
 
-      # Configura los servidores de nombre de dominio.
-      - name: DNS config
-        working-directory: tp02/ej1/servidor/terraform/11-dns
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-          CF_API_EMAIL: ${{ secrets.CF_API_EMAIL }}
-          CF_API_KEY: ${{ secrets.CF_API_KEY }}
-        run: |
-          ls -lah
+    # Configura los servidores de nombre de dominio.
+    - name: DNS config
+      working-directory: tp02/ej1/servidor/terraform/11-dns
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        CF_API_EMAIL: ${{ secrets.CF_API_EMAIL }}
+        CF_API_KEY: ${{ secrets.CF_API_KEY }}
+      run: |
+        ls -lah
 
-          bucket_name="unlu-tf"
+        bucket_name="unlu-tf"
 
-          prefix="gke-dns/state"
+        prefix="gke-dns/state"
 
-          terraform init --reconfigure \
-          --backend-config bucket=$bucket_name \
-          --backend-config prefix=$prefix
+        terraform init --reconfigure \
+        --backend-config bucket=$bucket_name \
+        --backend-config prefix=$prefix
 
-          terraform validate
+        terraform validate
 
-          sudo apt-get install jq
-          
-          LOADBALANCER_IP=$(kubectl get -o json service maestro-service | jq .status.loadBalancer.ingress\[0\].ip)
+        sudo apt-get install jq
+        
+        LOADBALANCER_IP=$(kubectl get -o json service maestro-service | jq .status.loadBalancer.ingress\[0\].ip)
 
-          terraform plan \
-          -var "CLOUDFLARE_EMAIL=$CF_API_EMAIL" \
-          -var "CLOUDFLARE_API_KEY=$CF_API_KEY" \
-          -var "GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS" \
-          -var "LOADBALANCER_IP=$LOADBALANCER_IP" \
-          -lock=false
+        terraform plan \
+        -var "CLOUDFLARE_EMAIL=$CF_API_EMAIL" \
+        -var "CLOUDFLARE_API_KEY=$CF_API_KEY" \
+        -var "GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS" \
+        -var "LOADBALANCER_IP=$LOADBALANCER_IP" \
+        -lock=false
 
-          terraform apply -lock=false --auto-approve
+        terraform apply -lock=false --auto-approve
   
   terraform-destroy: # DESTROY
     name: Terraform destroy
