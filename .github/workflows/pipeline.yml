@@ -113,6 +113,7 @@ jobs:
           echo ""
           echo "El servicio del maestro no está activo aún..."
           echo ""
+          sleep 10
         done
 
         while 
@@ -122,6 +123,7 @@ jobs:
           echo ""
           echo "Todavía no se pudo obtener la IP pública del balanceador de cargas..."
           echo ""
+          sleep 10
         done
 
         echo ""
