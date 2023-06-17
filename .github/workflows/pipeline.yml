@@ -72,15 +72,23 @@ jobs:
 
         set -e
 
-        kubectl create secret generic maestro-secrets \
-          --from-literal=POSTGRES_URL=${{ secrets.POSTGRES_URL }} \
-          --from-literal=POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
-          --from-literal=POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+        # Crea los objetos de los secretos, si no existen.
+        MAESTRO_SECRETS_OBJ=$(kubectl get secret maestro-secrets --ignore-not-found)
+        DNS_SECRETS_OBJ=$(kubectl get secret dns-secrets --ignore-not-found)
+        if [[ -z $MAESTRO_SECRETS_OBJ ]]
+        then
+          kubectl create secret generic maestro-secrets \
+            --from-literal=POSTGRES_URL=${{ secrets.POSTGRES_URL }} \
+            --from-literal=POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+            --from-literal=POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+        fi
+        if [[ -z $DNS_SECRETS_OBJ ]]
+          kubectl create secret generic dns-secrets \
+            --from-literal=CF_API_EMAIL=${{ secrets.CF_API_EMAIL }} \
+            --from-literal=CF_API_KEY=${{ secrets.CF_API_KEY }}
+        fi
 
-        kubectl create secret generic dns-secrets \
-          --from-literal=CF_API_EMAIL=${{ secrets.CF_API_EMAIL }} \
-          --from-literal=CF_API_KEY=${{ secrets.CF_API_KEY }}
-
+        # Aplica los cambios de todos los archivos de configuración.
         files=""
         for file in 0*.yaml; do
           files=$files" -f $(echo $file)"
