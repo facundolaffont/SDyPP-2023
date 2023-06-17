@@ -22,9 +22,6 @@ variable "CLOUDFLARE_EMAIL" {
 variable "CLOUDFLARE_API_KEY" {
   type = string
 }
-variable "GOOGLE_CREDENTIALS" {
-  type = string
-}
 
 # Obtiene la información de la zona del dominio de Cloudflare.
 data "cloudflare_zone" "app" {

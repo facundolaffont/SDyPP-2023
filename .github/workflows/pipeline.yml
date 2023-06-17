@@ -10,7 +10,7 @@ on:
 
 jobs:
   up: # ALL-UP
-    name: Terraform init
+    name: Infra up
     if: startsWith(github.event.head_commit.message, 'ALL-UP')
     runs-on: ubuntu-latest
     environment: pipeline-actions
@@ -65,7 +65,7 @@ jobs:
         gcloud container clusters get-credentials primary --region=us-central1-a
     
     # Despliega los objectos en la nube.
-    - name: Deploy
+    - name: Kubernetes deploy
       working-directory: tp02/ej1/servidor/k8s
       run: |
         ls -lah
@@ -88,12 +88,10 @@ jobs:
         eval "kubectl apply"$files
 
     # Configura los servidores de nombre de dominio.
-    - name: DNS config
+    - name: Terraform DNS config
       working-directory: tp02/ej1/servidor/terraform/11-dns
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-        CF_API_EMAIL: ${{ secrets.CF_API_EMAIL }}
-        CF_API_KEY: ${{ secrets.CF_API_KEY }}
       run: |
         ls -lah
 
@@ -111,9 +109,8 @@ jobs:
         
         LOADBALANCER_IP=$(kubectl get -o json service maestro-service | jq -r .status.loadBalancer.ingress\[0\].ip)
 
-        export TF_VAR_CLOUDFLARE_EMAIL=$CF_API_EMAIL
-        export TF_VAR_CLOUDFLARE_API_KEY=$CF_API_KEY
-        export TF_VAR_GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS
+        export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
+        export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
         export TF_VAR_LOADBALANCER_IP=$LOADBALANCER_IP
 
         terraform plan -lock=false
