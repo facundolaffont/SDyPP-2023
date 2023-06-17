@@ -391,7 +391,7 @@ jobs:
     environment: pipeline-actions
     steps:
 
-      # Selecciona la rama para.
+      # Selecciona la rama para. 
       - name: Checkout code 
         uses: actions/checkout@v3
 
