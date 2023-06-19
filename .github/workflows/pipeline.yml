@@ -84,14 +84,6 @@ jobs:
             --from-literal=POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           echo "Secretos del maestro creados."
         fi
-        if [[ -z $DNS_SECRETS_OBJ ]]
-        then
-          echo "Se crean los secretos para la configuración del DNS..."
-          kubectl create secret generic dns-secrets \
-            --from-literal=CF_API_EMAIL=${{ secrets.CF_API_EMAIL }} \
-            --from-literal=CF_API_KEY=${{ secrets.CF_API_KEY }}
-          echo "Secretos para la configuración del DNS creados."
-        fi
 
         # Aplica los cambios de todos los archivos de configuración.
         files=""
