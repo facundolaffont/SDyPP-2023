@@ -123,9 +123,9 @@ jobs:
         until 
           kubectl get service maestro-service
         do
-          echo ""
+          echo
           echo "El servicio del maestro no está activo aún..."
-          echo ""
+          echo
           sleep 10
         done
 
@@ -133,15 +133,15 @@ jobs:
           LOADBALANCER_IP=$(kubectl get -o json service maestro-service | jq -r .status.loadBalancer.ingress\[0\].ip)
           [ $LOADBALANCER_IP = null ]
         do
-          echo ""
+          echo
           echo "Todavía no se pudo obtener la IP pública del balanceador de cargas..."
-          echo ""
+          echo
           sleep 10
         done
 
-        echo ""
+        echo
         echo "IP pública del balanceador de cargas = $LOADBALANCER_IP."
-        echo ""
+        echo
 
         export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
         export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
