@@ -1,6 +1,6 @@
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 
-name: tp2-ej1-actions
+name: tp2-ej1-pipeline
 run-name: TP2 - EJ1 (@${{ github.triggering_actor }})
 
 on:
@@ -147,10 +147,6 @@ jobs:
     if: startsWith(github.event.head_commit.message, '[DOWN]')
     runs-on: ubuntu-latest
     environment: pipeline-actions
-    env:
-      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-      CF_API_EMAIL: ${{ secrets.CF_API_EMAIL }}
-      CF_API_KEY: ${{ secrets.CF_API_KEY }}
     steps:
 
       # Checkout de la rama.
@@ -195,9 +191,8 @@ jobs:
         
           LOADBALANCER_IP=$(kubectl get -o json service maestro-service | jq -r .status.loadBalancer.ingress\[0\].ip)
 
-          export TF_VAR_CLOUDFLARE_EMAIL=$CF_API_EMAIL
-          export TF_VAR_CLOUDFLARE_API_KEY=$CF_API_KEY
-          export TF_VAR_GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS
+          export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
+          export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
           export TF_VAR_LOADBALANCER_IP=$LOADBALANCER_IP
 
           terraform init --reconfigure \

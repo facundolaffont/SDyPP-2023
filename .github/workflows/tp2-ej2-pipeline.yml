@@ -1,0 +1,218 @@
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+
+name: tp2-ej2-pipeline
+run-name: TP2 - EJ2 (@${{ github.triggering_actor }})
+
+on:
+  push:
+    branches:
+      - pipeline-actions
+
+jobs:
+  up: # [UP-EJ2]
+    name: Infra up
+    if: startsWith(github.event.head_commit.message, '[UP-EJ2]')
+    runs-on: ubuntu-latest
+    environment: pipeline-actions
+    steps:
+
+    # Checkout de la rama.
+    - name: Checkout code 
+      uses: actions/checkout@v3
+
+    # Instala y configura Terraform CLI.
+    - name: Terraform setup
+      uses: hashicorp/setup-terraform@v2
+
+    # Crea la infraestructura en la nube.
+    - name: Terraform init
+      working-directory: tp02/ej2/terraform
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      run: |
+        ls -lah
+
+        bucket_name="sobel-terraform-bucket"
+
+        prefix="gke/state"
+
+        terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
+
+        terraform validate
+
+        terraform plan -lock=false
+
+        terraform apply -lock=false --auto-approve
+    
+    # Configura Google Cloud.
+    - name: Google Cloud authentication
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+    - name: Google Cloud SDK setup
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        version: '>= 363.0.0'
+        install_components: 'kubectl'
+    - name: GCloud config
+      run: |
+        gcloud info
+
+        gcloud components list
+
+        gcloud container clusters get-credentials primary --region=us-central1-a
+  
+    # Despliega los objectos en la nube.
+    - name: Kubernetes deploy
+      working-directory: tp02/ej2/k8s
+      run: |
+        ls -lah
+
+        set -e
+
+        # Crea los objetos de los secretos, si no existen.
+        WEBSERVER_SECRETS_OBJ=$(kubectl get secret webserver-secrets --ignore-not-found)
+        if [[ -z $WEBSERVER_SECRETS_OBJ ]]
+        then
+          echo "Se crean los secretos del webserver..."
+          kubectl create secret generic webserver-secrets \
+            --from-literal=POSTGRES_URL=${{ secrets.POSTGRES_URL }} \
+            --from-literal=POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+            --from-literal=POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          echo "Secretos del webserver creados."
+        fi
+
+        # Aplica los cambios de todos los archivos de configuración.
+        files=""
+        for file in 0*.yaml; do
+          files=$files" -f $(echo $file)"
+        done
+        eval "kubectl apply"$files
+
+    # Configura los servidores de nombre de dominio.
+    - name: Terraform DNS config
+      working-directory: tp02/ej2/terraform/11-dns
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      run: |
+        ls -lah
+
+        bucket_name="sobel-terraform-bucket"
+
+        prefix="gke-dns/state"
+
+        terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
+
+        terraform validate
+
+        sudo apt-get install jq
+        
+        until 
+          kubectl get service webserver-service
+        do
+          echo
+          echo "El servicio del webserver no está activo aún..."
+          echo
+          sleep 10
+        done
+
+        while 
+          LOADBALANCER_IP=$(kubectl get -o json service werbserver-service | jq -r .status.loadBalancer.ingress\[0\].ip)
+          [ $LOADBALANCER_IP = null ]
+        do
+          echo
+          echo "Todavía no se pudo obtener la IP pública del balanceador de cargas..."
+          echo
+          sleep 10
+        done
+
+        echo
+        echo "IP pública del balanceador de cargas = $LOADBALANCER_IP."
+        echo
+
+        export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
+        export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
+        export TF_VAR_LOADBALANCER_IP=$LOADBALANCER_IP
+
+        terraform plan -lock=false
+
+        terraform apply -lock=false --auto-approve
+  
+  down: # [DOWN-EJ2]
+    name: Terraform destroy all
+    if: startsWith(github.event.head_commit.message, '[DOWN-EJ2]')
+    runs-on: ubuntu-latest
+    environment: pipeline-actions
+    steps:
+
+      # Checkout de la rama.
+      - name: Checkout code 
+        uses: actions/checkout@v3
+
+      # Instala y configura Terraform CLI.
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # Configura Google Cloud.
+      - name: Google Cloud authentication
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - name: Google Cloud SDK setup
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: '>= 363.0.0'
+          install_components: 'kubectl'
+      - name: GCloud config
+        run: |
+          gcloud info
+
+          gcloud components list
+
+          gcloud container clusters get-credentials primary --region=us-central1-a
+
+      # Destruye la infraestructura en la nube.
+      - name: Terraform destroy gke-dns/state
+        working-directory: tp02/ej2/terraform/11-dns
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: |
+          ls -lah
+
+          bucket_name="sobel-terraform-bucket"
+
+          prefix="gke-dns/state"
+
+          sudo apt-get install jq
+        
+          LOADBALANCER_IP=$(kubectl get -o json service maestro-service | jq -r .status.loadBalancer.ingress\[0\].ip)
+
+          export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
+          export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
+          export TF_VAR_LOADBALANCER_IP=$LOADBALANCER_IP
+
+          terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
+
+          terraform destroy -lock=false --auto-approve
+      - name: Terraform destroy gke/state
+        working-directory: tp02/ej2/terraform
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: |
+          ls -lah
+
+          bucket_name="sobel-terraform-bucket"
+
+          prefix="gke/state"
+
+          terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
+
+          terraform destroy -lock=false --auto-approve
