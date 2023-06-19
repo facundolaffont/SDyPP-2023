@@ -74,7 +74,6 @@ jobs:
 
         # Crea los objetos de los secretos, si no existen.
         MAESTRO_SECRETS_OBJ=$(kubectl get secret maestro-secrets --ignore-not-found)
-        DNS_SECRETS_OBJ=$(kubectl get secret dns-secrets --ignore-not-found)
         if [[ -z $MAESTRO_SECRETS_OBJ ]]
         then
           echo "Se crean los secretos del maestro..."
